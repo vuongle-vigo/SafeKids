@@ -30,3 +30,47 @@
 *.exe
 *.out
 *.app
+
+# User folder
+.vscode/
+.vs/
+
+# Build folder
+build/
+[Bb]uild/
+[Bb]in/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# File DLL, PDB, LIB, OBJ, IDB
+*.dll
+*.pdb
+*.lib
+*.obj
+*.exe
+*.idb
+*.ipdb
+*.iobj
+*.log
+
+# Cmake file
+[Cc][Mm]ake[Bb]uilds/
+CMakeLists.txt.user
+
+# File Visual Studio
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.sdf
+*.cache
+*.VC.db
+*.VC.VC.opendb
+*.opensdf
+*.tlog/
