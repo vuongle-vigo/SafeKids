@@ -81,3 +81,53 @@ std::string ProcessMonitor::GetProcessPath(DWORD dwProcessId) {
     return std::string(processName);
 #endif
 }
+
+BOOL ProcessMonitor::StopProcess(std::string& sProcessName) {
+    HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hProcessSnap == INVALID_HANDLE_VALUE) {
+        PRINT_API_ERR("CreateToolhelp32Snapshot");
+        return;
+    }
+
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+
+    if (Process32First(hProcessSnap, &pe32)) {
+        do {
+            std::string processPath = this->GetProcessPath(pe32.th32ProcessID);
+            ProcessMonitor::ProcessInfo processInfo;
+#ifdef UNICODE
+            std::wstring ws(pe32.szExeFile);
+            std::string processName(ws.begin(), ws.end());
+#else
+            std::string processName(pe32.szExeFile);
+#endif
+            if (processName == sProcessName) {
+                HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pe32.th32ProcessID);
+                if (hProcess == NULL) {
+                    PRINT_API_ERR("OpenProcess");
+                    CloseHandle(hProcessSnap);
+                    return false;
+                }
+
+                if (!TerminateProcess(hProcess, 0)) {
+                    PRINT_API_ERR("TerminateProcess");
+                    CloseHandle(hProcess);
+                    CloseHandle(hProcessSnap);
+                    return false;
+                }
+
+                CloseHandle(hProcess);
+                CloseHandle(hProcessSnap);
+                return true;
+            }
+
+        } while (Process32Next(hProcessSnap, &pe32));
+    }
+    else {
+        PRINT_API_ERR("Process32First");
+    }
+
+    CloseHandle(hProcessSnap);
+    return false;
+}

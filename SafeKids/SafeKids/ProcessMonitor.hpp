@@ -12,7 +12,7 @@ class ProcessMonitor {
 public:
 	std::string GetActiveWindowProcessName();
 	void ListRunningProcesses();
-	BOOL StopProcess(std::wstring &wsProcessName);
+	BOOL StopProcess(std::string &sProcessName);
 
 private:
 	std::string GetProcessPath(DWORD dwProcessId);
