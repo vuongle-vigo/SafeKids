@@ -1,10 +1,13 @@
 #include "AppMonitor.hpp"
-
+#include "ProcessMonitor.hpp"
 
 
 int main() {
-	AppMonitor appMonitor;
+	/*AppMonitor appMonitor;
 	appMonitor.ListInstalledApplications();
-	appMonitor.UninstallApplication(L"Google Chrome Dev");
-	//appMonitor.DisplayApplications();
+	appMonitor.DisplayApplications();*/
+	
+	ProcessMonitor processMonitor;
+	processMonitor.ListRunningProcesses();
+	//processMonitor.GetActiveWindowProcessName();
 }

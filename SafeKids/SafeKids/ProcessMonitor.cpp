@@ -3,7 +3,7 @@
 std::string ProcessMonitor::GetActiveWindowProcessName() {
     HWND hwnd = GetForegroundWindow();
     if (hwnd == NULL) return "";
-
+    
     DWORD processID;
     GetWindowThreadProcessId(hwnd, &processID);
 
@@ -50,6 +50,7 @@ void ProcessMonitor::ListRunningProcesses() {
             processInfo.m_sProcessName = processName;
             processInfo.m_sProcessPath = processPath;
 
+            this->m_vProcessInfo.push_back(processInfo);
         } while (Process32Next(hProcessSnap, &pe32));
     }
     else {
@@ -70,9 +71,9 @@ std::string ProcessMonitor::GetProcessPath(DWORD dwProcessId) {
         if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded)) {
             GetModuleFileNameEx(hProcess, hMod, processName, sizeof(processName) / sizeof(TCHAR));
         }
-    }
 
-    CloseHandle(hProcess);
+        CloseHandle(hProcess);
+    }
 
 #ifdef UNICODE
     std::wstring ws(processName);
@@ -86,7 +87,7 @@ BOOL ProcessMonitor::StopProcess(std::string& sProcessName) {
     HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (hProcessSnap == INVALID_HANDLE_VALUE) {
         PRINT_API_ERR("CreateToolhelp32Snapshot");
-        return;
+        return false;
     }
 
     PROCESSENTRY32 pe32;
