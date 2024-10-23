@@ -130,6 +130,8 @@
     <ClInclude Include="AppMonitor.hpp" />
     <ClInclude Include="PowerMonitor.hpp" />
     <ClInclude Include="ProcessMonitor.hpp" />
+    <ClInclude Include="WinHttpWrapper.h" />
+    <ClInclude Include="WinVersion.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppMonitor.cpp" />
@@ -137,6 +139,8 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PowerMonitor.cpp" />
     <ClCompile Include="ProcessMonitor.cpp" />
+    <ClCompile Include="WinHttpWrapper.cpp" />
+    <ClCompile Include="WinVersion.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

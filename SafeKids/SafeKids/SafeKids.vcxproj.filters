@@ -20,6 +20,12 @@
     <ClInclude Include="PowerMonitor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WinHttpWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinVersion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -35,6 +41,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PowerMonitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WinHttpWrapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WinVersion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
