@@ -9,29 +9,44 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
+    <Filter Include="ComputerInfo">
+      <UniqueIdentifier>{e541e33a-555e-45ae-8f3c-e69b82016f0a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{c81d7862-aee0-4859-8bcd-551bb87637ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Client2Server">
+      <UniqueIdentifier>{6c3798a6-90c1-4798-86d6-104b0d79268c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AppMonitor">
+      <UniqueIdentifier>{9666e4e2-11ac-4cba-a9a8-d9179d3c8c81}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AppMonitor.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ProcessMonitor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PowerMonitor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WinHttpWrapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="WinVersion.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputerInfo.h">
+      <Filter>ComputerInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Client2Server.h">
+      <Filter>Client2Server</Filter>
+    </ClInclude>
+    <ClInclude Include="AppMonitor.hpp">
+      <Filter>AppMonitor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="AppMonitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="common.cpp">
@@ -43,11 +58,20 @@
     <ClCompile Include="PowerMonitor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WinHttpWrapper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="WinVersion.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputerInfo.cpp">
+      <Filter>ComputerInfo</Filter>
+    </ClCompile>
+    <ClCompile Include="Config.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Client2Server.cpp">
+      <Filter>Client2Server</Filter>
+    </ClCompile>
+    <ClCompile Include="AppMonitor.cpp">
+      <Filter>AppMonitor</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

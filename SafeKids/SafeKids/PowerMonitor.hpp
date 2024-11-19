@@ -13,8 +13,7 @@ public:
 private:
 	HWND hwnd;
 	std::chrono::system_clock::time_point loginTime;
-
-
+	
 };
 
 
