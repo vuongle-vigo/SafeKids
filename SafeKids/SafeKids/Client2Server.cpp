@@ -15,7 +15,7 @@ Client2Server::Client2Server() {
 }
 
 Client2Server::~Client2Server() {
-	//Close();
+	Close();
 }
 
 void Client2Server::Connect() {
@@ -32,7 +32,6 @@ void Client2Server::Connect() {
 	m_wsThread = std::thread([this]() {
 		m_wsClient.run();
 		});
-
 }
 
 void Client2Server::SendMessage2Server(const std::string& message) {
@@ -64,7 +63,6 @@ void Client2Server::OnMessage(websocketpp::connection_hdl hdl, client::message_p
 	std::string message = msg->get_payload();
 	DEBUG_LOG("Received message: %s", message.c_str());
 }
-
 
 void Client2Server::OnClose(websocketpp::connection_hdl hdl) {
 	DEBUG_LOG("Connect closed");

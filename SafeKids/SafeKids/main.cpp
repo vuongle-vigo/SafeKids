@@ -1,4 +1,5 @@
 #include "Client2Server.h"
+#include "PowerMonitor.h"
 #include "AppMonitor.hpp"
 #include "ProcessMonitor.hpp"
 #include "ComputerInfo.h"
@@ -9,9 +10,27 @@ int main() {
 	appMonitor.ListInstalledApplications();
 	appMonitor.DisplayApplications();*/
 	
-	/*ProcessMonitor processMonitor;
-	processMonitor.ListRunningProcesses();*/
-	//processMonitor.GetActiveWindowProcessName();
+	Client2Server c2s;
+	c2s.Connect();
+	Sleep(6);
+	
+	ComputerInfo com;
+	std::cout << com.m_szSerial;
+	c2s.SendMessage2Server(com.m_szSerial);
+
+
+	ProcessMonitor processMonitor;
+	//processMonitor.ListRunningProcesses();
+	std::string currentProcess;
+	while (1) {
+		if (currentProcess != processMonitor.GetActiveWindowProcessName()) {
+			std::cout << processMonitor.GetActiveWindowProcessName();
+			currentProcess = processMonitor.GetActiveWindowProcessName();
+			c2s.SendMessage2Server(currentProcess);
+		}
+		Sleep(1000);
+	}
+	
 
 	/*ComputerInfo com;
 	std::cout << com.m_szSerial;*/
@@ -19,15 +38,15 @@ int main() {
 	//Config& conf = Config::GetInstance();
 	//std::cout << conf.GetHost();
 
-	Client2Server c2s;
-	c2s.Connect();
-	std::cout << "hi";
-	Sleep(5);
-	std::string msg = "Hello vuongle";
-	c2s.SendMessage2Server(msg);
+	
 
-	while (1) {
+	/*PowerMonitor pwm;
+	pwm.StartThreadPowerMonitor();*/
 
-	}
+
+
+	//while (1) {
+
+	//}
 }
 

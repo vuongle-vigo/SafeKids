@@ -21,17 +21,17 @@
     <Filter Include="AppMonitor">
       <UniqueIdentifier>{9666e4e2-11ac-4cba-a9a8-d9179d3c8c81}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ProcessMonitor">
+      <UniqueIdentifier>{d6aa1a60-7fbe-4af5-be23-b6536ecef6c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerMonitor">
+      <UniqueIdentifier>{940c44bf-6d6d-4dd4-9e1d-e6e2c1f67849}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="WinVersion">
+      <UniqueIdentifier>{28e3535a-7a9f-4be0-8b72-feb084a17137}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ProcessMonitor.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerMonitor.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WinVersion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ComputerInfo.h">
       <Filter>ComputerInfo</Filter>
     </ClInclude>
@@ -44,21 +44,21 @@
     <ClInclude Include="AppMonitor.hpp">
       <Filter>AppMonitor</Filter>
     </ClInclude>
+    <ClInclude Include="ProcessMonitor.hpp">
+      <Filter>ProcessMonitor</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerMonitor.h">
+      <Filter>PowerMonitor</Filter>
+    </ClInclude>
+    <ClInclude Include="WinVersion.h">
+      <Filter>WinVersion</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="common.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ProcessMonitor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerMonitor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="WinVersion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ComputerInfo.cpp">
@@ -72,6 +72,15 @@
     </ClCompile>
     <ClCompile Include="AppMonitor.cpp">
       <Filter>AppMonitor</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessMonitor.cpp">
+      <Filter>ProcessMonitor</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerMonitor.cpp">
+      <Filter>PowerMonitor</Filter>
+    </ClCompile>
+    <ClCompile Include="WinVersion.cpp">
+      <Filter>WinVersion</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
