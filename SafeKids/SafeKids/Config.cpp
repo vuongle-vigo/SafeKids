@@ -7,7 +7,7 @@ Config& Config::GetInstance() {
 
 Config::Config() {
 	m_szWorkdir = GetWorkdir();
-	m_szServerHost = "192.168.142.28";
+	m_szServerHost = "192.168.4.48";
 	m_szServerPort = "8765";
 }
 
