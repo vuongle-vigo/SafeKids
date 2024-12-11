@@ -76,7 +76,7 @@ CMakeLists.txt.user
 *.tlog/
 
 # Exteral lib
-Exteral/
+External/
 
 # Node.js
 node_modules/
