@@ -18,7 +18,6 @@ int main() {
 	std::cout << com.m_szSerial;
 	c2s.SendMessage2Server(com.m_szSerial);
 
-
 	ProcessMonitor processMonitor;
 	//processMonitor.ListRunningProcesses();
 	std::string currentProcess;
@@ -28,6 +27,7 @@ int main() {
 			currentProcess = processMonitor.GetActiveWindowProcessName();
 			c2s.SendMessage2Server(currentProcess);
 		}
+
 		Sleep(1000);
 	}
 	
