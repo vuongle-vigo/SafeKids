@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\External\websocketpp-0.8.2;$(SolutionDir)\External\boost_1_86_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\External\websocketpp-0.8.2;$(SolutionDir)\External\boost_1_86_0;$(SolutionDir)\External\httplib;$(SolutionDir)\External\nlohmann;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,6 +138,8 @@
     <ClInclude Include="Client2Server.h" />
     <ClInclude Include="ComputerInfo.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="HttpClient.h" />
+    <ClInclude Include="Log.h" />
     <ClInclude Include="PowerMonitor.h" />
     <ClInclude Include="ProcessMonitor.hpp" />
     <ClInclude Include="WinVersion.h" />
@@ -148,6 +150,8 @@
     <ClCompile Include="common.cpp" />
     <ClCompile Include="ComputerInfo.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="HttpClient.cpp" />
+    <ClCompile Include="Log.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PowerMonitor.cpp" />
     <ClCompile Include="ProcessMonitor.cpp" />

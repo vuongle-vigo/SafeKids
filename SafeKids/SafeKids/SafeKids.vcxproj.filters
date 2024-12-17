@@ -30,6 +30,12 @@
     <Filter Include="WinVersion">
       <UniqueIdentifier>{28e3535a-7a9f-4be0-8b72-feb084a17137}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HttpClient">
+      <UniqueIdentifier>{e9b09b42-ba19-415e-81df-29e44adb5cc1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{4b4406a5-0002-40c4-b62a-1b9d7142dd54}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComputerInfo.h">
@@ -52,6 +58,12 @@
     </ClInclude>
     <ClInclude Include="WinVersion.h">
       <Filter>WinVersion</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpClient.h">
+      <Filter>HttpClient</Filter>
+    </ClInclude>
+    <ClInclude Include="Log.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -81,6 +93,12 @@
     </ClCompile>
     <ClCompile Include="WinVersion.cpp">
       <Filter>WinVersion</Filter>
+    </ClCompile>
+    <ClCompile Include="HttpClient.cpp">
+      <Filter>HttpClient</Filter>
+    </ClCompile>
+    <ClCompile Include="Log.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

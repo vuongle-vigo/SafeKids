@@ -6,11 +6,11 @@ public:
 	static Config& GetInstance();
 	bool SetWorkDir(const std::string& szNewWorkDir);
 	std::string GetHost();
-	std::string GetPort();
+	int GetPort();
 private:
 	std::string m_szWorkdir;
 	std::string m_szServerHost;
-	std::string m_szServerPort;
+	int m_serverPort;
 
 	Config();
 	~Config();

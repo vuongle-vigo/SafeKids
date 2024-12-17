@@ -18,8 +18,10 @@ class ComputerInfo {
 public:
 	ComputerInfo();
 	~ComputerInfo();
-	bool GetSerialNumber();
+	static ComputerInfo& GetInstance();
+	bool SetMachineGUID();
+	std::string GetMachineGUID();
 
-public:
-	std::string m_szSerial;
+private:
+	std::string m_szMachineGUID;
 };

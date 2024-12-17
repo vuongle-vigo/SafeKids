@@ -20,7 +20,7 @@ Client2Server::~Client2Server() {
 
 void Client2Server::Connect() {
 	Config& conf = Config::GetInstance();
-	std::string szUri = "ws://" + conf.GetHost() + ":" + conf.GetPort();
+	std::string szUri = "ws://" + conf.GetHost() + ":" + std::to_string(conf.GetPort());
 	websocketpp::lib::error_code error_code;
 	client::connection_ptr conn = m_wsClient.get_connection(szUri, error_code);
 	if (error_code) {
