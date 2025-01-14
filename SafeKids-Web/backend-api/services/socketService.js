@@ -5,6 +5,7 @@ const initWebSocketServer = (server) => {
     const wss = new WebSocket.Server({ server });
 
     wss.on('connection', (ws) => {
+        console.log("Have connection");
         // const clientId = clientManager.addClient(ws);
         ws.on('message', (message) => {
             console.log(`Message client:`, message.toString());

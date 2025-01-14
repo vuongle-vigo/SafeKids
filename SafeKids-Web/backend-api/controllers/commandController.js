@@ -15,12 +15,18 @@ async function sendCommand(req, res) {
 
 function getClientsOnline(req, res) {
     const clientManager = require('../services/clientManager');
-    const connectedClients = Object.keys(clientManager.clients);
-
-    res.status(200).json({
-        status: 'success',
-        clients: connectedClients
-    });
+    const connectedClients = clientManager.getClientIds();
+    if (connectedClients) {
+        res.status(200).json({
+            status: 'success',
+            clients: connectedClients
+        });
+    } else {
+        res.status(200).json({
+            status: 'success',
+            clients: ""
+        });
+    } 
 }
 
 module.exports = {

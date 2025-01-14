@@ -20,7 +20,22 @@ function getDeviceByUserId(userId, callback) {
     });
 }
 
+function uploadLastActivity(deviceId, callback) {
+    const currentTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const query = `UPDATE devices SET last_activity = ? WHERE device_id = ?`;   
+
+    connection.execute(query, [currentTimestamp, deviceId], (err, results) => {
+        if (err) {
+          console.error('Error updating timestamp:', err);
+          return;
+        }
+
+        console.log('Timestamp updated successfully');
+      });
+}
+
 module.exports = {
     addDevice,
     getDeviceByUserId,
+    uploadLastActivity
 };

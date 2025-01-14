@@ -150,6 +150,7 @@
     <ClCompile Include="common.cpp" />
     <ClCompile Include="ComputerInfo.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="Controller.cpp" />
     <ClCompile Include="HttpClient.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="main.cpp" />
