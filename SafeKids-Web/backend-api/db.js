@@ -16,7 +16,7 @@ connection.connect((err) => {
         return;
     }
 
-    console.log('COnnect MYSQL success with id: ' + connection.threadId);
+    console.log('Connect MYSQL success with id: ' + connection.threadId);
 });
 
 module.exports = connection;

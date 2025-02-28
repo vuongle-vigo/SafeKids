@@ -11,11 +11,13 @@ function addDevice(deviceId, deviceName, userId, callback) {
 }
 
 function getDeviceByUserId(userId, callback) {
+    console.log(userId);
     const query = 'SELECT * FROM devices WHERE user_id = ?';
     connection.query(query, [userId], (err, results) => {
         if (err) {
             return callback(err, null);
         }
+        console.log('results:', results);
         callback(null, results);
     });
 }

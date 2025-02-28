@@ -12,9 +12,9 @@ function registryUser(username, password, email, callback) {
     });
 }
 
-function findUserByUsername(username, callback) {
-    const query = 'SELECT * FROM users WHERE username = ?';
-    connection.query(query, [username], (err, result) => {
+function findUserByEmail(email, callback) {
+    const query = 'SELECT * FROM users WHERE email = ?';
+    connection.query(query, [email], (err, result) => {
         if (err) {
             return callback(err, null);
         }
@@ -24,5 +24,5 @@ function findUserByUsername(username, callback) {
 
 module.exports = {
     registryUser,
-    findUserByUsername,
+    findUserByEmail,
 };
