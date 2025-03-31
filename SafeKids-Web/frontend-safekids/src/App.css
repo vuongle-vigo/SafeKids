@@ -40,3 +40,16 @@
 .read-the-docs {
   color: #888;
 }
+
+html, body {
+  height: 100%; /* Đảm bảo body chiếm toàn bộ chiều cao màn hình */
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Ẩn cuộn toàn bộ trang */
+}
+
+#root {
+  height: 100%; /* Đảm bảo React root chiếm toàn bộ chiều cao */
+  display: flex;
+  flex-direction: column;
+}

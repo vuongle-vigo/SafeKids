@@ -1,4 +1,5 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
+import { FaDesktop, FaCog } from "react-icons/fa"; // Import icons
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -11,24 +12,24 @@ export default function Layout() {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div className="w-30 bg-gray-100 shadow-md p-4 flex flex-col justify-between">
+      <div className="w-40 bg-gray-200 shadow-md p-4 flex flex-col justify-between">
         <div>
-          <h2 className="font-bold mb-6 text-center">SafeKids</h2>
+          <h2 className="font-bold mb-6 text-center text-gray-800 text-lg">SafeKids</h2>
           <ul className="space-y-4">
             <li>
               <Link
-                to="/dashboard"
-                className="block text-sm px-3 py-2 rounded-md hover:bg-gray-200"
+                to="/devices"
+                className="flex items-center text-sm px-3 py-2 rounded-md text-gray-700 hover:bg-gray-300 transition"
               >
-                Devices
+                <FaDesktop className="mr-2" /> Devices
               </Link>
             </li>
             <li>
               <Link
                 to="/settings"
-                className="block text-sm px-3 py-2 rounded-md hover:bg-gray-200"
+                className="flex items-center text-sm px-3 py-2 rounded-md text-gray-700 hover:bg-gray-300 transition"
               >
-                Settings
+                <FaCog className="mr-2" /> Settings
               </Link>
             </li>
           </ul>
@@ -37,7 +38,7 @@ export default function Layout() {
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="w-full mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-red-600 transition"
+          className="w-full mt-4 px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500 transition"
         >
           Logout
         </button>

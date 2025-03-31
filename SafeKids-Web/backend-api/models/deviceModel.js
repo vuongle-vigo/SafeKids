@@ -11,13 +11,12 @@ function addDevice(deviceId, deviceName, userId, callback) {
 }
 
 function getDeviceByUserId(userId, callback) {
-    console.log(userId);
     const query = 'SELECT * FROM devices WHERE user_id = ?';
     connection.query(query, [userId], (err, results) => {
         if (err) {
             return callback(err, null);
         }
-        console.log('results:', results);
+        
         callback(null, results);
     });
 }
@@ -36,8 +35,19 @@ function uploadLastActivity(deviceId, callback) {
       });
 }
 
+function getDeviceById(deviceId, callback) {
+    const query = 'SELECT * FROM devices WHERE device_id = ?';
+    connection.query(query, [deviceId], (err, results) => {
+        if (err) {
+            return callback(err, null);
+        }
+        callback(null, results[0]); // Assuming device_id is unique
+    });
+}
+
 module.exports = {
     addDevice,
     getDeviceByUserId,
-    uploadLastActivity
+    uploadLastActivity,
+    getDeviceById,
 };

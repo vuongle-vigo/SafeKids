@@ -58,9 +58,6 @@ function login(req, res) {
             if (err) {
                 return res.status(500).json({ message: 'Error comparing password' });
             }
-
-            console.log(user.password);
-            console.log(password);
             
             if (!isMatch) {
                 return res.status(401).json({ message: 'Incorrect password' });
@@ -68,7 +65,7 @@ function login(req, res) {
 
             // Tạo JWT token
             const token = jwt.sign(
-                { id: user.id, username: user.username },
+                { id: user.user_id, username: user.username },
                 process.env.JWT_SECRET_KEY,
                 { expiresIn: '1h' }
             );

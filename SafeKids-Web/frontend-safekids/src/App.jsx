@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import DeviceDetails from "./pages/DeviceDetails";
+import Devices from "./pages/Devices";
 import Layout from "./pages/Layout"; // Import Layout
+import DeviceManagement from "./pages/DeviceManagement";
 
 function App() {
   return (
@@ -13,8 +13,8 @@ function App() {
 
         {/* Route Layout với Sidebar cố định */}
         <Route path="/" element={<Layout />}>
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="device/:deviceId" element={<DeviceDetails />} />
+          <Route path="devices" element={<Devices />} />
+          <Route path="device/:deviceId/manage" element={<DeviceManagement />} />
           <Route path="settings" element={<div>Settings Page</div>} />
         </Route>
 

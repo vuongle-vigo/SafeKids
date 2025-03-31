@@ -12,6 +12,7 @@ const authRoutes = require('./routes/authRoutes')
 const deviceRoutes = require('./routes/deviceRoutes');
 const commandRoutes = require('./routes/commandRoutes');
 const { initWebSocketServer } = require('./services/socketService'); 
+// const timeRoutes = require('./routes/timeRoutes'); // Removed
 
 // var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -30,7 +31,6 @@ app.use(cors({
     allowedHeaders: ['Authorization', 'Content-Type'],  
   }));
 
-// app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
