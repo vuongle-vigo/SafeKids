@@ -1,5 +1,5 @@
 #include "ComputerInfo.h"
-#include "common.cpp"
+#include "Common.h"
 
 ComputerInfo::ComputerInfo() {
 	if (!SetMachineGUID()) {}

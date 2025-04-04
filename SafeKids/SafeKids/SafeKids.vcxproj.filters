@@ -36,6 +36,9 @@
     <Filter Include="Common">
       <UniqueIdentifier>{4b4406a5-0002-40c4-b62a-1b9d7142dd54}</UniqueIdentifier>
     </Filter>
+    <Filter Include="SQLite3">
+      <UniqueIdentifier>{10220506-3c66-4d8e-b808-019f02155942}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComputerInfo.h">
@@ -65,12 +68,18 @@
     <ClInclude Include="Log.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="SQLiteDB.h">
+      <Filter>SQLite3</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="common.cpp">
+    <ClCompile Include="Common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ComputerInfo.cpp">
@@ -102,6 +111,12 @@
     </ClCompile>
     <ClCompile Include="Controller.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SQLiteDB.cpp">
+      <Filter>SQLite3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Include\sqlite3\sqlite3.c">
+      <Filter>SQLite3</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

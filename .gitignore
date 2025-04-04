@@ -122,3 +122,7 @@ coverage/
 
 # React Native (if applicable)
 .expo/
+
+#include folder
+boost_1_87_0/
+include/

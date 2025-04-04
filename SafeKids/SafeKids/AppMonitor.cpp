@@ -1,5 +1,5 @@
 #include "AppMonitor.hpp"
-#include "common.cpp"
+#include "Common.h"
 
 void AppMonitor::ListInstalledApplications() {
     HKEY hKeyEnumApp[2] = { HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER };

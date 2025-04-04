@@ -1,7 +1,7 @@
 
 //#define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "httplib.h"
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 #include "HttpClient.h"
 #include "Config.h"
 #include "ComputerInfo.h"

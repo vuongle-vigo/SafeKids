@@ -6,24 +6,25 @@
 #include <tlhelp32.h>
 #include <string>
 #include <vector>
-#include "common.cpp"
+#include "Common.h"
 
 class ProcessMonitor {
 public:
-	std::string GetActiveWindowProcessName();
-	void ListRunningProcesses();
+	std::string GetActiveWindowProcessPath();
+	std::wstring GetActiveWindowTitle();
+	void MonitorProcessUsage();
+	//void ListRunningProcesses();
 	BOOL StopProcess(std::string &sProcessName);
-
-private:
 	std::string GetProcessPath(DWORD dwProcessId);
-
-	struct ProcessInfo {
-		std::string m_sProcessName;
+private:
+	typedef struct _ProcessInfo {
 		std::string m_sProcessPath;
-	};
-	typedef struct ProcessInfo* PProcessInfo;
+		std::wstring m_wsProcessTitle;
+		double m_fTimeUsage;
+	} ProcessInfo, *PProcessInfo;
 
-	std::vector<ProcessInfo> m_vProcessInfo;
+	ProcessInfo m_processInfo;
+	double m_fTimeDelayQuery = 6000; // 60 seconds
 };
 
 #endif

@@ -1,90 +1,41 @@
-#include "Client2Server.h"
+﻿//#include "Client2Server.h"
 #include "PowerMonitor.h"
 #include "AppMonitor.hpp"
 #include "ProcessMonitor.hpp"
-#include "ComputerInfo.h"
-#include "Config.h"
+//#include "ComputerInfo.h"
+//#include "Config.h"
 #include "HttpClient.h"
-#include "json.hpp"
+#include "nlohmann/json.hpp"
+#include <iostream>
+#include "SQLiteDB.h"
 
 using json = nlohmann::json;
-
-void threadAutoConnectServer() {
-	Client2Server& c2s = Client2Server::GetInstance();
-
-	while (1) {
-		if (!c2s.GetFlagConnected()) {
-			std::cout << "Trying reconnect after 30 seconds..." << std::endl;
-			c2s.Connect();
-		}
-		else {
-			std::cout << "Check connect: is connected" << std::endl;
-		}
-		DEBUG_LOG("check while");
-		Sleep(10000);
-	}
-}
+//
+//void threadAutoConnectServer() {
+//	Client2Server& c2s = Client2Server::GetInstance();
+//
+//	while (1) {
+//		if (!c2s.GetFlagConnected()) {
+//			std::cout << "Trying reconnect after 30 seconds..." << std::endl;
+//			c2s.Connect();
+//		}
+//		else {
+//			std::cout << "Check connect: is connected" << std::endl;
+//		}
+//		DEBUG_LOG("check while");
+//		Sleep(10000);
+//	}
+//}
 
 int main() {
+	//std::string sqlitePath = "C:\\Users\\levuong\\Documents\\GitHub\\SafeKids\\SafeKids\\sqlite_db\\safekids.db";	
+	//SQLiteDB db(sqlitePath);
+	//db.execute("CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT);");
 
-	std::thread t(threadAutoConnectServer);
-
-	t.join();
-
-	/*AppMonitor appMonitor;
-	appMonitor.ListInstalledApplications();
-	appMonitor.DisplayApplications();*/
-	//
-	/*Client2Server c2s;
-	c2s.Connect();
-	Sleep(6);
+	//PowerMonitor pm;
+	//pm.TimeRunningCalc();
+	ProcessMonitor pm;
+	pm.MonitorProcessUsage();
 	
-	getchar();*/
-
-	/*ComputerInfo com;
-	
-	std::cout << com.GetMachineGUID();
-	json jsRegister;
-	jsRegister["type"] = "REGISTER";
-	jsRegister["clientId"] = com.GetMachineGUID();
-	
-	c2s.SendMessage2Server(jsRegister.dump());*/
-	std::cout << "Exiting....";
-	/*while (1) {
-		Sleep(1000);
-	}*/
-	//ProcessMonitor processMonitor;
-	////processMonitor.ListRunningProcesses();
-	//std::string currentProcess;
-	//while (1) {
-	//	if (currentProcess != processMonitor.GetActiveWindowProcessName()) {
-	//		std::cout << processMonitor.GetActiveWindowProcessName();
-	//		currentProcess = processMonitor.GetActiveWindowProcessName();
-	//		c2s.SendMessage2Server(currentProcess);
-	//	}
-
-	//	Sleep(1000);
-	//}
-	//
-
-	/*ComputerInfo com;
-	std::cout << com.m_szSerial;*/
-
-	//Config& conf = Config::GetInstance();
-	//std::cout << conf.GetHost();
-
-	
-
-	/*PowerMonitor pwm;
-	pwm.StartThreadPowerMonitor();*/
-
-
-
-	//while (1) {
-
-	//}
-
-	//HttpClient httpClient;
-	//httpClient.SendRequestGetToken("admin", "password123");
 }
 

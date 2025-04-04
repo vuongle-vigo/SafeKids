@@ -7,13 +7,9 @@ class PowerMonitor {
 public:
 	PowerMonitor();
 	~PowerMonitor();
-	DWORD GetIdleTime();
-	bool IsSystemIdle();
-	void TimeRunningCalc();
+	static PowerMonitor& GetInstance();
 	void SetTimeUseLimit(DWORD dwTimeUseLimit);
-	SYSTEMTIME GetCurrentLocalTime();
-	static void ThreadCheckUseLimitTime(LPARAM lParam);
-	void StartThreadPowerMonitor();
+	void MonitorPowerUsage();
 private:
 	DWORD dwTimeUseLimit;
 };
