@@ -11,11 +11,8 @@ const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes')
 const deviceRoutes = require('./routes/deviceRoutes');
 const commandRoutes = require('./routes/commandRoutes');
+const kidRoutes = require('./routes/kidRoutes');
 const { initWebSocketServer } = require('./services/socketService'); 
-// const timeRoutes = require('./routes/timeRoutes'); // Removed
-
-// var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 
 var app = express();
 
@@ -31,11 +28,11 @@ app.use(cors({
     allowedHeaders: ['Authorization', 'Content-Type'],  
   }));
 
-app.use('/users', usersRouter);
-app.use('/api/users', userRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/devices', deviceRoutes);
+app.use('/api/device', deviceRoutes);
 app.use('/api/commands', commandRoutes);
+app.use('/api/kid', kidRoutes);
 
 app.use(express.static(path.join(__dirname, '../frontend-safekids')));
 

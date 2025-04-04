@@ -1,5 +1,4 @@
 const connection = require('../db');
-const { connect } = require('../routes');
 
 function registryUser(username, password, email, callback) {
     const query = 'INSERT INTO users (username, password, email) VALUES (?, ?, ?)';

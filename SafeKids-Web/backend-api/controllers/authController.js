@@ -77,7 +77,6 @@ function login(req, res) {
 
 function deviceLogin(req, res) {
     const { deviceId, deviceName } = req.body;
-
     const authHeader = req.headers['authorization'];
     
     if (!authHeader || !authHeader.startsWith('Basic ')) {
@@ -115,13 +114,13 @@ function deviceLogin(req, res) {
 
             // Generate device token
             const deviceToken = jwt.sign(
-                { id: user.id, username: user.username, device: true },
-                process.env.JWT_SECRET_KEY,
-                { expiresIn: '365d' } // Token valid for 1 year
+                { id: deviceId, username: user.username, device: true },
+                process.env.JWT_KID_SECRET_KEY,
+                { expiresIn: '100y' } // Token valid for 100 year
             );
 
             // Add device to database
-            deviceModel.addDevice(deviceId, deviceName, user.id, (err, result) => {
+            deviceModel.addDevice(deviceId, deviceName, user.user_id, (err, result) => {
                 if (err) {
                     return res.status(500).json({ message: 'Error adding device' });
                 }
