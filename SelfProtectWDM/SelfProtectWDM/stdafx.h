@@ -1,0 +1,9 @@
+#pragma once
+#include <ntifs.h>
+#include <ntstrsafe.h>
+#include <fltKernel.h>
+#include <dontuse.h>
+#include <suppress.h>
+#include <sal.h>
+#include <wdmsec.h>
+#include "windef.h"

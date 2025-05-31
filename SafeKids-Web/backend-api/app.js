@@ -30,7 +30,7 @@ app.use(cors({
 
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/device', deviceRoutes);
+app.use('/api/devices', deviceRoutes);
 app.use('/api/commands', commandRoutes);
 app.use('/api/kid', kidRoutes);
 

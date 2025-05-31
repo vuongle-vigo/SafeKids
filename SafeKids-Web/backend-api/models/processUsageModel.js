@@ -18,6 +18,25 @@ function addProcessUsage(deviceId, processTitle, processPath, dateRecorded, star
     });
 }
 
+function getProcessUsageByDeviceAndDate(deviceId, dateRecorded, callback) {
+    const query = 'SELECT * FROM process_usage WHERE device_id = ? AND date_recorded = ?';
+    connection.query(query, [deviceId, dateRecorded], (err, results) => {
+        if (err) {
+            return callback({
+                success: false,
+                message: 'Error fetching process usage.',
+                error: err
+            }, null);
+        }
+        callback(null, {
+            success: true,
+            message: 'Process usage fetched successfully.',
+            data: results
+        });
+    });
+}
+
 module.exports = {
-    addProcessUsage
+    addProcessUsage,
+    getProcessUsageByDeviceAndDate
 };

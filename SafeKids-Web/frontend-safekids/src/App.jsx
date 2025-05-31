@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Devices from "./pages/Devices";
 import Layout from "./pages/Layout"; // Import Layout
@@ -13,6 +13,7 @@ function App() {
 
         {/* Route Layout với Sidebar cố định */}
         <Route path="/" element={<Layout />}>
+          <Route index element={<Navigate to="/devices" replace />} />
           <Route path="devices" element={<Devices />} />
           <Route path="device/:deviceId/manage" element={<DeviceManagement />} />
           <Route path="settings" element={<div>Settings Page</div>} />

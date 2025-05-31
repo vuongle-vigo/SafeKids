@@ -1,10 +1,11 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import ScreenTimeTab from "../components/ScreenTimeTab";
-import ApplicationsTab from "../components/ApplicationsTab";
-import ScreenshotsTab from "../components/ScreenshotsTab";
-import ActivitysTab from "../components/ActivitysTab";
+import ScreenTimeTab from "./Tabs/PowerUsageTab";
+import ApplicationsTab from "./Tabs/ApplicationsTab";
+import ScreenshotsTab from "./Tabs/ScreenshotsTab";
 import axios from "axios";
+import ApplicationUsageTab from "./Tabs/ApplicationUsageTab"; // Import the new component
+import WebHistoryTab from "./Tabs/WebHistoryTab"; // Import the new component
 
 export default function DeviceManagement() {
   const { deviceId } = useParams();
@@ -12,8 +13,8 @@ export default function DeviceManagement() {
   const [activeTab, setActiveTab] = useState("screenTime"); // Default tab
   const [config, setConfig] = useState({ screenTimeLimit: 4, restrictedApps: ["Facebook"] });
   const [screenshots, setScreenshots] = useState([]);
-  const [activeActivities, setActiveActivities] = useState(["Google", "YouTube"]);
   const [usageData, setUsageData] = useState([]); // Add state for usage data
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]); // State for selected date
 
   useEffect(() => {
     const fetchDeviceData = async () => {
@@ -40,52 +41,10 @@ export default function DeviceManagement() {
   }, [deviceId]);
 
   useEffect(() => {
-    const fetchTabData = async () => {
-      try {
-        switch (activeTab) {
-          case "screenTime":
-            const token = localStorage.getItem("token");
-            if (!token) {
-                navigate("/login");
-                return;
-            }
-
-            const screenTimeResponse = await axios.get(`/api/devices/${deviceId}/screen-time`, {
-                headers: {
-                Authorization: `Bearer ${token}`,
-                },
-            });
-            console.log("Screen Time Response:", screenTimeResponse.data);
-            setConfig((prevConfig) => ({
-              ...prevConfig,
-              screenTimeLimit: screenTimeResponse.data.limit.daily_limit,
-            }));
-            setUsageData(screenTimeResponse.data.usage); // Pass usage data to ScreenTimeTab
-            break;
-          case "activity":
-            const activityResponse = await axios.get(`/api/devices/${deviceId}/activities`);
-            setActiveActivities(activityResponse.data.activities);
-            break;
-          case "applications":
-            const appsResponse = await axios.get(`/api/devices/${deviceId}/applications`);
-            setConfig((prevConfig) => ({ ...prevConfig, restrictedApps: appsResponse.data.restrictedApps }));
-            break;
-          case "screenshots":
-            const screenshotsResponse = await axios.get(`/api/devices/${deviceId}/screenshots`);
-            setScreenshots(screenshotsResponse.data.screenshots);
-            break;
-          default:
-            break;
-        }
-      } catch (error) {
-        console.error(`Error fetching data for tab ${activeTab}:`, error);
-      }
-    };
-
     if (device) {
-      fetchTabData();
+      console.log(`Active tab changed to: ${activeTab}`);
     }
-  }, [activeTab, device, deviceId]);
+  }, [activeTab, device]); // Chỉ log khi tab thay đổi, không gọi API
 
   const handleScreenTimeUpdate = (newLimit) => {
     setConfig((prevConfig) => ({ ...prevConfig, screenTimeLimit: newLimit }));
@@ -106,18 +65,27 @@ export default function DeviceManagement() {
             screenTimeLimit={config.screenTimeLimit}
             usageData={usageData} // Pass usage data as a prop
             onUpdate={handleScreenTimeUpdate}
+            deviceId={deviceId} // Pass deviceId as a prop
           />
         );
-      case "activity":
-        return <ActivitysTab activeActivities={activeActivities} />;
+      case "applicationUsage": // Updated case for Application Usage
+        return (
+          <ApplicationUsageTab
+            deviceId={deviceId}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+            isActive={activeTab === "applicationUsage"} // Truyền isActive
+          />
+        );
       case "applications":
         return (
           <ApplicationsTab
-            installedApps={device.installedApps}
-            restrictedApps={config.restrictedApps}
-            onToggle={handleAppRestrictionToggle}
+            deviceId={deviceId} // Only pass deviceId
+            isActive={activeTab === "applications"} // Pass isActive prop
           />
         );
+      case "webHistory": // New case for Web History
+        return <WebHistoryTab deviceId={deviceId} />;
       case "screenshots":
         return <ScreenshotsTab screenshots={screenshots} />;
       default:
@@ -129,7 +97,7 @@ export default function DeviceManagement() {
     <div className="p-4">
       {device ? (
         <>
-          <header className="mb-4 flex items-center space-x-4 -mt-6"> {/* Added -mt-2 to lift the header */}
+          <header className="mb-4 flex items-center space-x-4 -mt-6 pl-8"> {/* Added pl-4 to shift right */}
             <h1 className="text-xl font-semibold">{device.device_name}</h1>
             <span
               className={`text-sm font-medium ${
@@ -151,17 +119,17 @@ export default function DeviceManagement() {
                     : "text-gray-500 hover:text-blue-500"
                 }`}
               >
-                Screen Time
+                Power Usage
               </button>
               <button
-                onClick={() => setActiveTab("activity")}
+                onClick={() => setActiveTab("applicationUsage")} // Updated tab name
                 className={`pb-2 ${
-                  activeTab === "activity"
+                  activeTab === "applicationUsage"
                     ? "border-b-2 border-blue-500 text-blue-500"
                     : "text-gray-500 hover:text-blue-500"
                 }`}
               >
-                Activity
+                Application Usage
               </button>
               <button
                 onClick={() => setActiveTab("applications")}
@@ -172,6 +140,16 @@ export default function DeviceManagement() {
                 }`}
               >
                 Applications
+              </button>
+              <button
+                onClick={() => setActiveTab("webHistory")} // New tab for Web History
+                className={`pb-2 ${
+                  activeTab === "webHistory"
+                    ? "border-b-2 border-blue-500 text-blue-500"
+                    : "text-gray-500 hover:text-blue-500"
+                }`}
+              >
+                Web History
               </button>
               <button
                 onClick={() => setActiveTab("screenshots")}

@@ -1,28 +1,34 @@
 
 //#define CPPHTTPLIB_OPENSSL_SUPPORT
-#include "httplib.h"
-#include "nlohmann/json.hpp"
 #include "HttpClient.h"
+#include "nlohmann/json.hpp"
 #include "Config.h"
 #include "ComputerInfo.h"
+#include "SQLiteDB.h"
 
 #define MINE_BEGIN			"----------------------------2896059025745124%08d\r\n"\
 							"Content-Disposition: form-data; name=\"file\"; filename=\"%s\"\r\n"\
 							"Content-Type: application/x-msdos-program\r\n\r\n"
 #define MINE_END			"\r\n----------------------------2896059025745124%08d--\r\n"
 #define MINE_CONTENT_TYPE	"multipart/form-data; boundary=--------------------------2896059025745124%08d"
-using json = nlohmann::json;
-using namespace httplib;
 
-
-bool HttpClient::Init()
+HttpClient::HttpClient()
 {
-	return true;
+	LoginDB& loginDB = LoginDB::GetInstance();
+	Config& cfg = Config::GetInstance();
+	m_sToken = loginDB.getToken();
+}
+
+HttpClient::~HttpClient() {}
+
+HttpClient& HttpClient::GetInstance() {
+	static HttpClient instance;
+	return instance;
 }
 
 bool HttpClient::SendRequestGetToken(LPCSTR pszUserName, LPCSTR pszPassword)
 {
-	Config &cfg = Config::GetInstance();
+	Config& cfg = Config::GetInstance();
 	ComputerInfo comInfo = ComputerInfo::GetInstance();
 
 	Client client(cfg.GetHost(), cfg.GetPort());
@@ -39,43 +45,16 @@ bool HttpClient::SendRequestGetToken(LPCSTR pszUserName, LPCSTR pszPassword)
 	if (response && response->status == 200)
 	{
 		auto res = json::parse(response->body);
-		
+
 		if (res.contains("token")) {
 			m_sToken = res["token"];
 			std::cout << m_sToken;
-		}
-
-		if (res.contains("error") && res["error"].is_number_integer())
-		{
-			int error = res.at("error");
-			if (!error)
-			{
-				if (res.contains("data") &&
-					res["data"].is_object() &&
-					res["data"].contains("token") &&
-					res["data"]["token"].is_string()
-					)
-				{
-					m_sToken = res["data"]["token"];
-					return true;
-				}
-				else
-				{
-					//Log->Error("Token field is invalid !");
-				}
-			}
-			else
-			{
-				//Log->Error("Error %d when getting api token", res["error"]);
-			}
-		}
-		else
-		{
-			//Log->Error("Invalid json structure!");
+			LoginDB& loginDB = LoginDB::GetInstance();
+			loginDB.add(pszUserName, pszPassword, m_sToken);
 		}
 	}
 	else
-	{	
+	{
 		auto res = json::parse(response->body);
 		std::cout << res["message"];
 		//Log->Error("Request failed with error: %d", -1);
@@ -103,6 +82,40 @@ bool HttpClient::SendRequestGetPolling() {
 	}
 
 	return true;
+}
+
+bool HttpClient::PushPowerUsage(json data) {
+	Config& cfg = Config::GetInstance();
+	Client m_client(cfg.GetHost(), cfg.GetPort());
+	Headers headers = {
+		{ "Authorization", "Bearer " + m_sToken }
+	};
+	auto response = m_client.Post("/api/kid/add-power-usage", headers, data.dump(), "application/json");
+	if (response && response->status == 201) {
+		std::cout << "Response: " << response->body << std::endl;
+	}
+	else {
+		std::cerr << "Request failed: " << response->status << std::endl;
+		return false;
+	}
+	return true;
+}
+
+bool HttpClient::PushProcessUsage(json data) {
+	Config& cfg = Config::GetInstance();
+	Client m_client(cfg.GetHost(), cfg.GetPort());
+	Headers headers = {
+		{ "Authorization", "Bearer " + m_sToken }
+	};
+	auto response = m_client.Post("/api/kid/add-process-usage", headers, data.dump(), "application/json");
+	if (response && response->status == 201) {
+		std::cout << "Response: " << response->body << std::endl;
+	}
+	else {
+		std::cerr << "Request failed: " << response->status << std::endl;
+		return false;
+	}
+	return true;	
 }
 
 std::string HttpClient::GetToken() {

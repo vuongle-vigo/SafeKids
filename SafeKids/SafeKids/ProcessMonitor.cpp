@@ -183,7 +183,7 @@ void ProcessMonitor::MonitorProcessUsage() {
 		if (m_processInfo.m_sProcessPath.find("LockApp.exe") == std::string::npos) {
 			std::string currentDate = GetCurrentDate();
 			int currentHour = ConvertStringToInt(GetCurrentTimeHour());
-			double usage_minutes = powerUsageDB.query(currentDate, currentHour);
+			double usage_minutes = powerUsageDB.QueryByTime(currentDate, currentHour);
             if (usage_minutes != -1) {
                 double new_usage_minutes = usage_minutes + m_fTimeDelayQuery / 60000; // Convert milliseconds to minutes
                 if (!powerUsageDB.update(currentDate, currentHour, new_usage_minutes)) {

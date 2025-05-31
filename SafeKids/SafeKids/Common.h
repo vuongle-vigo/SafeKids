@@ -20,3 +20,4 @@
 std::string GetCurrentDate();
 std::string GetCurrentTimeHour();
 int ConvertStringToInt(const std::string& str);
+std::wstring DosPathToNtPath(const std::wstring& dosPath);

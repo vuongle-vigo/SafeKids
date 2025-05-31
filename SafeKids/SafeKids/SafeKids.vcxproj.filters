@@ -39,6 +39,9 @@
     <Filter Include="SQLite3">
       <UniqueIdentifier>{10220506-3c66-4d8e-b808-019f02155942}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DriverCommunication">
+      <UniqueIdentifier>{ef1f26b1-a906-46e4-9364-f2d643250c51}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComputerInfo.h">
@@ -73,6 +76,9 @@
     </ClInclude>
     <ClInclude Include="Common.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Communication.h">
+      <Filter>DriverCommunication</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -117,6 +123,9 @@
     </ClCompile>
     <ClCompile Include="..\Include\sqlite3\sqlite3.c">
       <Filter>SQLite3</Filter>
+    </ClCompile>
+    <ClCompile Include="Communication.cpp">
+      <Filter>DriverCommunication</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

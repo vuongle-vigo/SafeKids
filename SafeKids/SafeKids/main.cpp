@@ -1,10 +1,10 @@
 ﻿//#include "Client2Server.h"
+#include "HttpClient.h"
 #include "PowerMonitor.h"
 #include "AppMonitor.hpp"
 #include "ProcessMonitor.hpp"
 //#include "ComputerInfo.h"
 //#include "Config.h"
-#include "HttpClient.h"
 #include "nlohmann/json.hpp"
 #include <iostream>
 #include "SQLiteDB.h"
@@ -28,14 +28,15 @@ using json = nlohmann::json;
 //}
 
 int main() {
-	//std::string sqlitePath = "C:\\Users\\levuong\\Documents\\GitHub\\SafeKids\\SafeKids\\sqlite_db\\safekids.db";	
-	//SQLiteDB db(sqlitePath);
-	//db.execute("CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT);");
-
 	//PowerMonitor pm;
 	//pm.TimeRunningCalc();
 	ProcessMonitor pm;
 	pm.MonitorProcessUsage();
-	
+
+	//PowerUsageDB& powerUsageDB = PowerUsageDB::GetInstance();
+	//json jsonData = powerUsageDB.QueryAllTime();
+	//std::cout << jsonData.dump(5);
+	//HttpClient& httpClient = HttpClient::GetInstance();
+	//httpClient.PushPowerUsage(jsonData);
 }
 

@@ -4,6 +4,7 @@
 #include <chrono>
 #include <sstream>
 #include <iomanip>
+#include <windows.h>
 
 std::string GetCurrentDate() {
     // Get current time
@@ -51,4 +52,21 @@ int ConvertStringToInt(const std::string& str) {
 		std::cerr << "Out of range: " << str << " is too large to fit in an int." << std::endl;
 		return 0;
 	}
+}
+
+std::wstring DosPathToNtPath(const std::wstring& dosPath) {
+	if (dosPath.length() < 2 || dosPath[1] != L':') {
+		std::wcerr << L"Invalid DOS path: " << dosPath << std::endl;
+		return L"";
+	}
+
+	wchar_t drive[3] = { dosPath[0], dosPath[1], L'\0' };
+	wchar_t devicePath[512];
+	if (QueryDosDeviceW(drive, devicePath, 512) == 0) {
+		std::wcerr << L"QueryDosDeviceW failed for drive " << drive << L", error: " << GetLastError() << std::endl;
+		return L"";
+	}
+
+	std::wstring rest = dosPath.substr(2);
+	return std::wstring(devicePath) + rest;
 }

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
+import axios from "axios"; // Import axios for API calls
 import "chart.js/auto";
 
-export default function ScreenTimeTab({ screenTimeLimit, usageData, onUpdate }) {
+export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, deviceId }) {
   const [selectedRange, setSelectedRange] = useState("today"); // Default range
   const [customRange, setCustomRange] = useState({ start: "", end: "" });
   const [showCustomPicker, setShowCustomPicker] = useState(false); // Toggle for custom picker
@@ -16,6 +17,61 @@ export default function ScreenTimeTab({ screenTimeLimit, usageData, onUpdate }) 
     Saturday: 6,
     Sunday: 6,
   }); // Default limits for each day
+  const [fetchedUsageData, setFetchedUsageData] = useState([]); // State for fetched data
+  const [selectedDay, setSelectedDay] = useState("Monday"); // Default to Monday
+  const [dailyLimit, setDailyLimit] = useState({ hours: 4, minutes: 0 }); // Default to Monday's limit
+
+  useEffect(() => {
+    const fetchUsageData = async () => {
+      let startDate, endDate;
+
+      if (selectedRange === "custom") {
+        startDate = customRange.start;
+        endDate = customRange.end;
+      } else {
+        const days = selectedRange === "today" ? 1 : selectedRange === "7days" ? 7 : selectedRange === "15days" ? 15 : 30;
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - (days - 1));
+        startDate = start.toISOString().split("T")[0];
+        endDate = end.toISOString().split("T")[0];
+      }
+
+      try {
+        const token = localStorage.getItem("token"); // Retrieve token from localStorage
+        const response = await axios.post(
+          `/api/devices/${deviceId}/power-usage/time`,
+          {
+            startTime: startDate,
+            endTime: endDate,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Add token to headers
+            },
+          }
+        );
+        console.log(response.data);
+        setFetchedUsageData(response.data);
+      } catch (error) {
+        console.error("Error fetching usage data:", error);
+      }
+    };
+
+    fetchUsageData();
+  }, [selectedRange, customRange, deviceId]);
+
+  useEffect(() => {
+    // Fetch data for "today" when the tab is activated
+    setSelectedRange("today");
+  }, []);
+
+  useEffect(() => {
+    setDailyLimit({
+      hours: Math.floor(weeklyLimits[selectedDay]),
+      minutes: (weeklyLimits[selectedDay] % 1) * 60,
+    });
+  }, [selectedDay, weeklyLimits]);
 
   const handleRangeChange = (range) => {
     setSelectedRange(range);
@@ -25,20 +81,41 @@ export default function ScreenTimeTab({ screenTimeLimit, usageData, onUpdate }) 
       setShowCustomPicker(false);
       setCustomRange({ start: "", end: "" });
     }
-    console.log(`Fetching data for range: ${range}`);
   };
 
   const handleCustomRangeChange = (field, value) => {
     setCustomRange((prev) => ({ ...prev, [field]: value }));
-    if (customRange.start && customRange.end) {
-      console.log(`Fetching data for custom range: ${customRange.start} to ${customRange.end}`);
-    }
   };
 
   const handleWeeklyLimitChange = (day, value) => {
     setWeeklyLimits((prev) => ({ ...prev, [day]: value }));
-    console.log(`Updated ${day} limit to ${value} hours`);
   };
+
+  const handleDayClick = (day) => {
+    setSelectedDay(day);
+    setDailyLimit({
+      hours: Math.floor(weeklyLimits[day]),
+      minutes: (weeklyLimits[day] % 1) * 60,
+    });
+  };
+
+  const handleDailyLimitChange = (field, value) => {
+    const updatedValue = Math.max(0, Math.min(field === "hours" ? 24 : 59, Math.floor(value)));
+    setDailyLimit((prev) => ({ ...prev, [field]: updatedValue }));
+    setWeeklyLimits((prev) => ({
+      ...prev,
+      [selectedDay]: field === "hours"
+        ? updatedValue + prev[selectedDay] % 1
+        : Math.floor(prev[selectedDay]) + updatedValue / 60,
+    }));
+  };
+
+  const saveDailyLimit = () => {
+    const totalHours = dailyLimit.hours + dailyLimit.minutes / 60;
+    setWeeklyLimits((prev) => ({ ...prev, [selectedDay]: totalHours }));
+    setSelectedDay(null);
+  };
+
   const generateChartData = () => {
     if (selectedRange === "today") {
       return {
@@ -47,7 +124,7 @@ export default function ScreenTimeTab({ screenTimeLimit, usageData, onUpdate }) 
           {
             label: "Minutes Used",
             data: Array.from({ length: 24 }, (_, i) =>
-              usageData
+              fetchedUsageData
                 .filter((data) => data.hour === i)
                 .reduce((sum, data) => sum + data.usage_minutes, 0)
             ),
@@ -69,7 +146,7 @@ export default function ScreenTimeTab({ screenTimeLimit, usageData, onUpdate }) 
           {
             label: "Hours Used",
             data: dateLabels.map((date) =>
-              usageData
+              fetchedUsageData
                 .filter((data) => data.date.startsWith(date))
                 .reduce((sum, data) => sum + data.usage_minutes / 60, 0)
             ),
@@ -81,13 +158,38 @@ export default function ScreenTimeTab({ screenTimeLimit, usageData, onUpdate }) 
   };
 
   const calculateSummary = () => {
-    const totalMinutes = usageData.reduce((sum, data) => sum + data.usage_minutes, 0);
+    const filteredData = selectedRange === "today"
+      ? fetchedUsageData
+      : fetchedUsageData.filter((data) => {
+          const dataDate = new Date(data.date);
+          const rangeStart = selectedRange === "custom"
+            ? new Date(customRange.start)
+            : new Date(new Date().setDate(new Date().getDate() - (selectedRange === "7days" ? 6 : selectedRange === "15days" ? 14 : 29)));
+          const rangeEnd = selectedRange === "custom"
+            ? new Date(customRange.end)
+            : new Date();
+          return dataDate >= rangeStart && dataDate <= rangeEnd;
+        });
+
+    const totalMinutes = filteredData.reduce((sum, data) => sum + data.usage_minutes, 0);
     const totalHours = (totalMinutes / 60).toFixed(2);
-    const averageMinutes =
-      usageData.length > 0 ? (totalMinutes / usageData.length).toFixed(2) : 0;
-    const maxMinutes = Math.max(...usageData.map((data) => data.usage_minutes));
+
+    const daysInRange = selectedRange === "custom"
+      ? (new Date(customRange.end) - new Date(customRange.start)) / (1000 * 60 * 60 * 24) + 1
+      : selectedRange === "7days"
+      ? 7
+      : selectedRange === "15days"
+      ? 15
+      : selectedRange === "30days"
+      ? 30
+      : 1;
+
+    const averageHours = (totalMinutes / 60 / daysInRange).toFixed(2);
+
+    const maxMinutes = Math.max(...filteredData.map((data) => data.usage_minutes), 0);
     const maxHours = (maxMinutes / 60).toFixed(2);
-    return { totalHours, averageMinutes, maxHours };
+
+    return { totalHours, averageHours, maxHours };
   };
 
   const { totalHours, averageHours, maxHours } = calculateSummary();
@@ -232,32 +334,55 @@ export default function ScreenTimeTab({ screenTimeLimit, usageData, onUpdate }) 
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
           <div className="bg-white rounded-lg shadow-lg p-6 w-96">
             <h3 className="text-lg font-semibold mb-4 text-center">Configure Weekly Screen Time Limits</h3>
-            <div className="grid grid-cols-1 gap-4">
+            <div className="flex justify-center space-x-2 mb-4">
               {Object.keys(weeklyLimits).map((day) => (
-                <div key={day} className="flex items-center justify-between">
-                  <span className="text-sm font-medium w-24 text-left">{day}</span> {/* Fixed width for alignment */}
-                  <input
-                    type="number"
-                    min="0"
-                    max="24"
-                    value={weeklyLimits[day]}
-                    onChange={(e) => handleWeeklyLimitChange(day, Math.min(24, e.target.value))} // Limit to 24
-                    className="border rounded px-2 py-1 text-sm w-16 text-center"
-                  />
-                  <span className="text-sm text-gray-500 ml-2">hrs</span>
-                </div>
+                <button
+                  key={day}
+                  onClick={() => setSelectedDay(day)}
+                  className={`w-10 h-10 flex items-center justify-center rounded-full border ${
+                    selectedDay === day ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  {day.slice(0, 2)}
+                </button>
               ))}
             </div>
-            <div className="mt-6 flex justify-end space-x-4">
+            <div className="border rounded-lg p-4 shadow-md">
+              <div className="flex justify-center space-x-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Hours</label>
+                  <input
+                    type="number"
+                    value={dailyLimit.hours}
+                    onChange={(e) => handleDailyLimitChange("hours", parseInt(e.target.value, 10))}
+                    className="border rounded px-3 py-2 text-sm w-20 text-center"
+                    min="0"
+                    max="24"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Minutes</label>
+                  <input
+                    type="number"
+                    value={Math.floor(dailyLimit.minutes)} // Ensure minutes are displayed as integers
+                    onChange={(e) => handleDailyLimitChange("minutes", parseInt(e.target.value, 10))}
+                    className="border rounded px-3 py-2 text-sm w-20 text-center"
+                    min="0"
+                    max="59"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-center space-x-4">
               <button
                 onClick={() => setShowWeeklySettings(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                className="px-6 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
               >
                 Cancel
               </button>
               <button
                 onClick={() => setShowWeeklySettings(false)}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
               >
                 Save
               </button>

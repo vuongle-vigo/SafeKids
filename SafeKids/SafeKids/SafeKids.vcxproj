@@ -140,6 +140,7 @@
     <ClInclude Include="AppMonitor.hpp" />
     <ClInclude Include="Client2Server.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="Communication.h" />
     <ClInclude Include="ComputerInfo.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="HttpClient.h" />
@@ -154,6 +155,7 @@
     <ClCompile Include="AppMonitor.cpp" />
     <ClCompile Include="Client2Server.cpp" />
     <ClCompile Include="Common.cpp" />
+    <ClCompile Include="Communication.cpp" />
     <ClCompile Include="ComputerInfo.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Controller.cpp" />

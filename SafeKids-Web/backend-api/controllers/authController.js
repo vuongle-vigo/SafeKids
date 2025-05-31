@@ -118,7 +118,6 @@ function deviceLogin(req, res) {
                 process.env.JWT_KID_SECRET_KEY,
                 { expiresIn: '100y' } // Token valid for 100 year
             );
-
             // Add device to database
             deviceModel.addDevice(deviceId, deviceName, user.user_id, (err, result) => {
                 if (err) {

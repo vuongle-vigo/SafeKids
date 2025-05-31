@@ -1,7 +1,10 @@
+#pragma once
 #include <string>
 #include "sqlite3/sqlite3.h"
-
+#include "nlohmann/json.hpp"
 #define SQLITE_DB_PATH "C:\\Users\\levuong\\Documents\\GitHub\\SafeKids\\SafeKids\\sqlite_db\\safekids.db"
+
+using json = nlohmann::json;
 
 class SQLiteDB {
 public:
@@ -48,7 +51,19 @@ public:
 	static PowerUsageDB& GetInstance();
 	bool add(const std::string& date, int hour, double usage_minute);
 	bool update(const std::string& date, int hour, double usage_minute);
-	double query(const std::string& date, int hour);
+	double QueryByTime(const std::string& date, int hour);
+    json QueryAllTime();
 private:
 	SQLiteDB& db;
+};
+
+class LoginDB {
+public:
+    LoginDB();
+    ~LoginDB();
+    static LoginDB& GetInstance();
+    bool add(const std::string& username, const std::string& password_hash, const std::string& token_encrypted);
+    std::string getToken();
+private:
+    SQLiteDB& db;
 };

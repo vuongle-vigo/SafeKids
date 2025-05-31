@@ -1,4 +1,5 @@
 #include "SQLiteDB.h"
+#include "Common.h"
 #include <iostream>
 
 // SQLiteDB class implementation
@@ -166,7 +167,7 @@ bool PowerUsageDB::update(const std::string& date, int hour, double usage_minute
 	return success;
 }
 
-double PowerUsageDB::query(const std::string& date, int hour) {
+double PowerUsageDB::QueryByTime(const std::string& date, int hour) {
 	const char* sql = "SELECT usage_minutes FROM power_usage WHERE date = ? AND hour = ?;";
 	sqlite3_stmt* stmt;
 	if (sqlite3_prepare_v2(db.getDB(), sql, -1, &stmt, nullptr) != SQLITE_OK) {
@@ -184,4 +185,74 @@ double PowerUsageDB::query(const std::string& date, int hour) {
 
 	sqlite3_finalize(stmt);
 	return usage_minutes;
+}
+
+json PowerUsageDB::QueryAllTime() {
+	json result;
+	std::string currentDate = GetCurrentDate();
+	std::string currentTime = GetCurrentTimeHour();
+
+	const char* sql = "SELECT date, hour, usage_minutes FROM power_usage;";
+	sqlite3_stmt* stmt;
+	if (sqlite3_prepare_v2(db.getDB(), sql, -1, &stmt, nullptr) != SQLITE_OK) {
+		return result; // Return empty JSON if query fails
+	}
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		std::string date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+		int hour = sqlite3_column_int(stmt, 1);
+		double usage_minutes = sqlite3_column_double(stmt, 2);
+		if (date != currentDate && hour != ConvertStringToInt(currentTime)) {
+			result.push_back({ {"date", date}, {"hour", hour}, {"usage_minutes", usage_minutes} });
+		}
+	}
+
+	sqlite3_finalize(stmt);
+	return result;
+}
+
+LoginDB::LoginDB() : db(SQLiteDB::GetInstance()) {}
+
+LoginDB::~LoginDB() {}
+
+LoginDB& LoginDB::GetInstance() {
+	static LoginDB instance;
+	return instance;
+}
+
+bool LoginDB::add(const std::string& username, const std::string& password_hash, const std::string& token_encrypted) {
+	std::string currentDate = GetCurrentDate();
+	std::string currentTime = GetCurrentTimeHour();
+	std::string timeLogin = currentDate + " " + currentTime;
+	const char* sql = "INSERT INTO user_account (username, password_hash, token_encrypted, last_login) VALUES (?, ?, ?, ?);";
+	sqlite3_stmt* stmt;
+	if (sqlite3_prepare_v2(db.getDB(), sql, -1, &stmt, nullptr) != SQLITE_OK) {
+		return false;
+	}
+
+	sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_TRANSIENT); // UTF-8
+	sqlite3_bind_text(stmt, 2, password_hash.c_str(), -1, SQLITE_TRANSIENT); // UTF-8
+	sqlite3_bind_text(stmt, 3, token_encrypted.c_str(), -1, SQLITE_TRANSIENT); // UTF-8
+	sqlite3_bind_text(stmt, 4, timeLogin.c_str(), -1, SQLITE_TRANSIENT); // UTF-8
+
+	bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+	sqlite3_finalize(stmt);
+	return success;
+}
+
+std::string LoginDB::getToken() {
+    std::string sql = "SELECT token_encrypted FROM user_account;";
+	sqlite3_stmt* stmt;
+	if (sqlite3_prepare_v2(db.getDB(), sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+		return "";
+	}
+
+	std::string token = "";
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		const char* token_encrypted = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+		token = token_encrypted ? token_encrypted : "";
+	}
+
+	sqlite3_finalize(stmt);
+	return token;
 }

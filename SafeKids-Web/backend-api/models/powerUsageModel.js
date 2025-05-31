@@ -1,6 +1,6 @@
 const connection = require('../db');
 
-function addMachineUsage(deviceId, date, hour, usage_minutes, callback) {
+function addPowerUsage(deviceId, date, hour, usage_minutes, callback) {
     const query = 'INSERT INTO power_usage (device_id, date, hour, usage_minutes) VALUES (?, ?, ?, ?)';
     connection.query(query, [deviceId, date, hour, usage_minutes], (err, result) => {
         if (err) {
@@ -18,7 +18,7 @@ function addMachineUsage(deviceId, date, hour, usage_minutes, callback) {
     });
 }
 
-function getMachineUsage(deviceId, callback) {
+function getPowerUsage(deviceId, callback) {
     const query = 'SELECT * FROM power_usage WHERE device_id = ?';
     connection.query(query, [deviceId], (err, results) => {
         if (err) {
@@ -28,7 +28,7 @@ function getMachineUsage(deviceId, callback) {
     });
 }
 
-function getMachineUsageByTime(deviceId, startTime, endTime, callback) {
+function getPowerUsageByTime(deviceId, startTime, endTime, callback) {
     const query = 'SELECT * FROM power_usage WHERE device_id = ? AND date BETWEEN ? AND ?';
     connection.query(query, [deviceId, startTime, endTime], (err, results) => {
         if (err) {
@@ -39,7 +39,7 @@ function getMachineUsageByTime(deviceId, startTime, endTime, callback) {
 }
 
 module.exports = {
-    addMachineUsage,
-    getMachineUsage,
-    getMachineUsageByTime
+    addPowerUsage,
+    getPowerUsage,
+    getPowerUsageByTime
 };

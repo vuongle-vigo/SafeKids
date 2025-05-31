@@ -2,9 +2,10 @@ const connection = require('../db');
 
 function addDevice(deviceId, deviceName, userId, callback) {
     console.log(deviceId, deviceName, userId)
-    const query = 'INSERT INTO devices (device_id, device_name, user_id) VALUES (?, ?, ?)';
+    const query = 'INSERT INTO devices (device_guid, device_name, user_id) VALUES (?, ?, ?)';
     connection.query(query, [deviceId, deviceName, userId], (err, result) => {
         if (err) {
+            console.error('Error inserting device:', err);
             return callback(err, null);
         }
         callback(null, result);
@@ -46,9 +47,20 @@ function getDeviceById(deviceId, callback) {
     });
 }
 
+function getDeviceByGuid(deviceGuid, callback) {
+    const query = 'SELECT device_id FROM devices WHERE device_guid = ?';
+    connection.query(query, [deviceGuid], (err, results) => {
+        if (err) {
+            return callback(err, null);
+        }
+        callback(null, results[0]); // Assuming device_guid is unique
+    });
+}
+
 module.exports = {
     addDevice,
     getDeviceByUserId,
     uploadLastActivity,
     getDeviceById,
+    getDeviceByGuid,
 };

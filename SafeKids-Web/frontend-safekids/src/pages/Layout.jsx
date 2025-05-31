@@ -1,18 +1,32 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
-import { FaDesktop, FaCog } from "react-icons/fa"; // Import icons
+import { FaDesktop, FaCog, FaBars } from "react-icons/fa"; // Import icons
+import { useState } from "react";
 
 export default function Layout() {
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+  };
+
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen relative">
       {/* Sidebar */}
-      <div className="w-40 bg-gray-200 shadow-md p-4 flex flex-col justify-between">
+      <div
+        className={`fixed top-0 left-0 h-full bg-gray-200 shadow-md p-4 flex flex-col justify-between transform ${
+          isSidebarOpen ? "translate-x-0 w-60" : "-translate-x-full w-40"
+        } transition-transform duration-300 z-30`}
+      >
         <div>
           <h2 className="font-bold mb-6 text-center text-gray-800 text-lg">SafeKids</h2>
           <ul className="space-y-4">
@@ -43,6 +57,22 @@ export default function Layout() {
           Logout
         </button>
       </div>
+
+      {/* Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-20"
+          onClick={closeSidebar}
+        ></div>
+      )}
+
+      {/* Sidebar Toggle Button */}
+      <button
+        onClick={toggleSidebar}
+        className="absolute top-4 left-4 z-30 p-2 bg-blue-300 text-white rounded-md hover:bg-blue-400 transition"
+      >
+        <FaBars />
+      </button>
 
       {/* Main Content */}
       <div className="flex-1 p-6">

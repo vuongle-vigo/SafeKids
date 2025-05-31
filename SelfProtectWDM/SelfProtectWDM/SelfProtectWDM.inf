@@ -1,0 +1,120 @@
+; SelfProtectWDM.inf
+;
+
+[Version]
+Signature	=	"$WINDOWS NT$"
+Class       =	"ActivityMonitor"                         ;This is determined by the work this filter driver does
+ClassGuid   =	{b86dff51-a31e-4bac-b3cf-e8cfe75c9fc2}    ;This value is determined by the Class
+Provider    = %ProviderString%
+CatalogFile	=	SelfProtectWDM.cat
+DriverVer	=	05/22/2025,1.0.0.0
+PnpLockdown	=	1
+
+[SourceDisksNames]
+1 = %DiskId1%,,,
+
+[SourceDisksFiles]
+SelfProtectWDM.sys=1
+
+[DestinationDirs]
+SelfProtectWDMDownlevel.CopyDriverFiles  = 12            ;%windir%\system32\drivers
+SelfProtectWDMDownlevel.DelDriverFiles   = 12            ;%windir%\system32\drivers
+SelfProtectWDM.DriverFiles               = 13            ;driver store
+
+;;
+;; Default install sections
+;;
+
+[DefaultInstall.NT$ARCH$.10.0...25952]
+OptionDesc          = %ServiceDescription%
+CopyFiles           = SelfProtectWDM.DriverFiles
+
+[DefaultInstall.NT$ARCH$.10.0...25952.Services]
+AddService          = %ServiceName%,,SelfProtectWDM.Service
+
+;
+; Support sections
+;
+
+[SelfProtectWDM.Service]
+DisplayName      = %ServiceName%
+Description      = %ServiceDescription%
+ServiceBinary    = %13%\%DriverName%.sys        ;%windir%\system32\drivers\
+Dependencies     = "FltMgr"
+ServiceType      = 2                            ;SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 3                            ;SERVICE_DEMAND_START
+ErrorControl     = 1                            ;SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter Activity Monitor"
+AddReg           = SelfProtectWDM.AddRegistry
+
+[SelfProtectWDM.AddRegistry]
+HKR,"Parameters\Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Parameters\Instances\"%Instance1.Name%,"Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Parameters\Instances\"%Instance1.Name%,"Flags",0x00010001,%Instance1.Flags%
+
+[SelfProtectWDM.DriverFiles]
+%DriverName%.sys
+
+;;
+;; Downlevel default install sections
+;;
+
+[DefaultInstall.NT$ARCH$]
+OptionDesc          = %ServiceDescription%
+CopyFiles           = SelfProtectWDMDownlevel.CopyDriverFiles
+
+[DefaultInstall.NT$ARCH$.Services]
+AddService          = %ServiceName%,,SelfProtectWDMDownlevel.Service
+
+;;
+;; Downlevel default uninstall sections
+;;
+
+[DefaultUninstall.NT$ARCH$]
+DelFiles        = SelfProtectWDMDownlevel.DelDriverFiles
+
+[DefaultUninstall.NT$ARCH$.Services]
+LegacyUninstall = 1
+DelService      = %ServiceName%,0x200      ;Ensure service is stopped before deleting
+
+;
+; Downlevel support sections
+;
+[SelfProtectWDMDownlevel.Service]
+DisplayName      = %ServiceName%
+Description      = %ServiceDescription%
+ServiceBinary    = %12%\%DriverName%.sys        ;%windir%\system32\drivers\
+Dependencies     = "FltMgr"
+ServiceType      = 2                            ;SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 3                            ;SERVICE_DEMAND_START
+ErrorControl     = 1                            ;SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter Activity Monitor"
+AddReg           = SelfProtectWDMDownlevel.AddRegistry
+
+[SelfProtectWDMDownlevel.AddRegistry]
+HKR,"Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Instances\"%Instance1.Name%,"Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Instances\"%Instance1.Name%,"Flags",0x00010001,%Instance1.Flags%
+
+[SelfProtectWDMDownlevel.CopyDriverFiles]
+%DriverName%.sys
+
+[SelfProtectWDMDownlevel.DelDriverFiles]
+%DriverName%.sys
+
+;;
+;; String Section
+;;
+
+[Strings]
+ProviderString          = "TODO-Set-Provider"
+ServiceDescription      = "A File SelfProtectWDM Monitoring Mini-Filter Driver"
+ServiceName             = "SelfProtectWDM"
+DriverName              = "SelfProtectWDM"
+DiskId1                 = "File SelfProtectWDM Monitoring Device Installation Disk"
+
+;Instances specific information.
+DefaultInstance         = "SelfProtectWDM Instance"
+Instance1.Name          = "SelfProtectWDM Instance"
+Instance1.Altitude      = "370160"
+Instance1.Flags         = 0x0              ; Allow all attachments
