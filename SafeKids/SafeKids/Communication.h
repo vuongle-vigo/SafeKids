@@ -2,6 +2,8 @@
 #include <windows.h>
 #include <fltUser.h>
 
+#define SQLITE_DB L"sqlite_db\\safekids.db"
+
 #define PORT_NAME L"\\SelfProtectWDMCommPort"
 #define MAX_MESSAGE_SIZE 512
 
@@ -20,3 +22,4 @@ struct PROTECT_MESSAGE {
 };
 
 BOOL SendMessageToDriver(MESSAGE_TYPE Type, LPCWSTR FilePath);
+BOOL InitSelfProtectDriver();

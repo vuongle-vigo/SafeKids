@@ -27,9 +27,6 @@
     <Filter Include="PowerMonitor">
       <UniqueIdentifier>{940c44bf-6d6d-4dd4-9e1d-e6e2c1f67849}</UniqueIdentifier>
     </Filter>
-    <Filter Include="WinVersion">
-      <UniqueIdentifier>{28e3535a-7a9f-4be0-8b72-feb084a17137}</UniqueIdentifier>
-    </Filter>
     <Filter Include="HttpClient">
       <UniqueIdentifier>{e9b09b42-ba19-415e-81df-29e44adb5cc1}</UniqueIdentifier>
     </Filter>
@@ -41,6 +38,9 @@
     </Filter>
     <Filter Include="DriverCommunication">
       <UniqueIdentifier>{ef1f26b1-a906-46e4-9364-f2d643250c51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Login">
+      <UniqueIdentifier>{ae04ce9c-d735-429e-9ff3-37fe8516d175}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -62,9 +62,6 @@
     <ClInclude Include="PowerMonitor.h">
       <Filter>PowerMonitor</Filter>
     </ClInclude>
-    <ClInclude Include="WinVersion.h">
-      <Filter>WinVersion</Filter>
-    </ClInclude>
     <ClInclude Include="HttpClient.h">
       <Filter>HttpClient</Filter>
     </ClInclude>
@@ -79,6 +76,9 @@
     </ClInclude>
     <ClInclude Include="Communication.h">
       <Filter>DriverCommunication</Filter>
+    </ClInclude>
+    <ClInclude Include="Login.h">
+      <Filter>Login</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -106,9 +106,6 @@
     <ClCompile Include="PowerMonitor.cpp">
       <Filter>PowerMonitor</Filter>
     </ClCompile>
-    <ClCompile Include="WinVersion.cpp">
-      <Filter>WinVersion</Filter>
-    </ClCompile>
     <ClCompile Include="HttpClient.cpp">
       <Filter>HttpClient</Filter>
     </ClCompile>
@@ -126,6 +123,9 @@
     </ClCompile>
     <ClCompile Include="Communication.cpp">
       <Filter>DriverCommunication</Filter>
+    </ClCompile>
+    <ClCompile Include="Login.cpp">
+      <Filter>Login</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

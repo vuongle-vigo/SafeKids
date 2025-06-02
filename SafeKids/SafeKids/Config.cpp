@@ -1,7 +1,8 @@
 #include "Config.h"
+#include "Common.h"
 
 Config::Config() {
-	m_szWorkdir = GetWorkdir();
+	m_wszWorkdir = GetCurrentDir();
 	m_szServerHost = "localhost";
 	m_serverPort = 3000;
 }
@@ -15,8 +16,8 @@ Config& Config::GetInstance() {
 	return instance;
 }
 
-std::string Config::GetWorkdir() {
-	return m_szWorkdir;
+std::wstring Config::GetWorkdir() {
+	return m_wszWorkdir;
 }
 
 std::string Config::GetHost() {

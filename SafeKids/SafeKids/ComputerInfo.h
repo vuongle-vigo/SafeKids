@@ -9,7 +9,7 @@
 #include <comdef.h>
 #include <Wbemidl.h>
 #include <MMSystem.h>
-//#include "../APIhasing/ImportAPI.h"
+
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "IPHLPAPI.lib")

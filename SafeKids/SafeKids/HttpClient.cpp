@@ -51,6 +51,7 @@ bool HttpClient::SendRequestGetToken(LPCSTR pszUserName, LPCSTR pszPassword)
 			std::cout << m_sToken;
 			LoginDB& loginDB = LoginDB::GetInstance();
 			loginDB.add(pszUserName, pszPassword, m_sToken);
+			return true;
 		}
 	}
 	else

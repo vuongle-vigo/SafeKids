@@ -70,3 +70,22 @@ std::wstring DosPathToNtPath(const std::wstring& dosPath) {
 	std::wstring rest = dosPath.substr(2);
 	return std::wstring(devicePath) + rest;
 }
+
+std::wstring GetCurrentDir() {
+	wchar_t path[MAX_PATH] = { 0 };
+	GetModuleFileNameW(NULL, path, MAX_PATH);
+	for (int i = wcslen(path) - 1; i >= 0; --i) {
+		if (path[i] == '\\') {
+			path[i + 1] = '\0'; 
+			break;
+		}
+	}
+
+	return std::wstring(path);
+}
+
+std::wstring GetCurrentProcessPath() {
+	wchar_t path[MAX_PATH] = { 0 };
+	GetModuleFileNameW(NULL, path, MAX_PATH);
+	return std::wstring(path);
+}
