@@ -4,7 +4,6 @@ const deviceModel = require('../models/deviceModel');
 
 function devices(req, res) {
     const userId = req.user.id;
-    console.log('User ID:', userId);
     deviceModel.getDeviceByUserId(userId, (err, result) => {
         if (err) {
             return res.status(500).json({ message: 'Error fetching devices' });
@@ -23,7 +22,47 @@ function getDeviceById(req, res) {
     });
 }
 
+function deleteDevice(req, res) {
+    const deviceId = req.params.deviceId;
+    console.log('Device ID to delete:', deviceId);
+    deviceModel.deleteDevice(deviceId, (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error deleting device' });
+        }
+        res.status(200).json({ message: 'Device deleted successfully' });
+    });
+}
+
+function updateDeviceName(req, res) {
+    const deviceId = req.params.deviceId;
+    const { device_name } = req.body;
+
+    deviceModel.updateDeviceName(deviceId, device_name, (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error updating device name' });
+        }
+        res.status(200).json({ message: 'Device name updated successfully' });
+    });
+}
+
+function updateDeviceStatus(req, res) {
+    const deviceId = req.device.device_id;
+    if (!deviceId) {
+        return res.status(400).json({ message: 'Missing or invalid deviceId' });
+    }
+
+    deviceModel.updateDeviceStatus(deviceId, (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error updating device status' });
+        }
+        res.status(200).json({ message: 'Device status updated successfully' });
+    });
+}
+
 module.exports={
     devices,
-    getDeviceById
+    getDeviceById,
+    deleteDevice,
+    updateDeviceName,
+    updateDeviceStatus
 }

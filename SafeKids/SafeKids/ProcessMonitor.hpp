@@ -13,6 +13,7 @@ public:
 	std::string GetActiveWindowProcessPath();
 	std::wstring GetActiveWindowTitle();
 	void MonitorProcessUsage();
+	bool CheckBlockApp(std::string& sProcessPath);
 	//void ListRunningProcesses();
 	BOOL StopProcess(std::string &sProcessName);
 	std::string GetProcessPath(DWORD dwProcessId);

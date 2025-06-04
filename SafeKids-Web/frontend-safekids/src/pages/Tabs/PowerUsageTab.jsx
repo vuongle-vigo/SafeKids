@@ -1,13 +1,24 @@
 import { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
-import axios from "axios"; // Import axios for API calls
+import axios from "axios";
 import "chart.js/auto";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Trash2 } from "lucide-react";
 
 export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, deviceId }) {
-  const [selectedRange, setSelectedRange] = useState("today"); // Default range
-  const [customRange, setCustomRange] = useState({ start: "", end: "" });
-  const [showCustomPicker, setShowCustomPicker] = useState(false); // Toggle for custom picker
-  const [showWeeklySettings, setShowWeeklySettings] = useState(false); // Toggle for weekly settings modal
+  const [selectedRange, setSelectedRange] = useState("today");
+  const [showWeeklySettings, setShowWeeklySettings] = useState(false);
   const [weeklyLimits, setWeeklyLimits] = useState({
     Monday: 4,
     Tuesday: 4,
@@ -16,29 +27,77 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
     Friday: 4,
     Saturday: 6,
     Sunday: 6,
-  }); // Default limits for each day
-  const [fetchedUsageData, setFetchedUsageData] = useState([]); // State for fetched data
-  const [selectedDay, setSelectedDay] = useState("Monday"); // Default to Monday
-  const [dailyLimit, setDailyLimit] = useState({ hours: 4, minutes: 0 }); // Default to Monday's limit
+  });
+  const [allowedTimes, setAllowedTimes] = useState({
+    Monday: ["08:00-12:00", "14:00-22:00"],
+    Tuesday: ["08:00-12:00", "14:00-22:00"],
+    Wednesday: ["08:00-12:00", "14:00-22:00"],
+    Thursday: ["08:00-12:00", "14:00-22:00"],
+    Friday: ["08:00-12:00", "14:00-22:00"],
+    Saturday: ["08:00-12:00", "14:00-22:00"],
+    Sunday: ["08:00-12:00", "14:00-22:00"],
+  });
+  const [fetchedUsageData, setFetchedUsageData] = useState([]);
+  const [selectedDay, setSelectedDay] = useState("Monday");
+  const [dailyLimit, setDailyLimit] = useState({ hours: 4, minutes: 0 });
+  const [tempAllowedTimes, setTempAllowedTimes] = useState(allowedTimes.Monday);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogContent, setDialogContent] = useState({ title: "", message: "" });
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`/api/devices/${deviceId}/config`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const config = response.data[0]?.time_limit_daily;
+        if (config) {
+          const dayOrder = [
+            "sunday",
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday",
+          ];
+
+          const updatedLimits = {};
+          const updatedAllowedTimes = {};
+
+          dayOrder.forEach((day) => {
+            if (config[day]) {
+              const dayKey = day.charAt(0).toUpperCase() + day.slice(1);
+              updatedLimits[dayKey] = config[day].max_hours;
+              updatedAllowedTimes[dayKey] = config[day].allowed_time;
+            }
+          });
+
+          setWeeklyLimits(updatedLimits);
+          setAllowedTimes(updatedAllowedTimes);
+        }
+      } catch (error) {
+        console.error("Error fetching config:", error);
+      }
+    };
+
+    fetchConfig();
+  }, [deviceId]);
 
   useEffect(() => {
     const fetchUsageData = async () => {
-      let startDate, endDate;
-
-      if (selectedRange === "custom") {
-        startDate = customRange.start;
-        endDate = customRange.end;
-      } else {
-        const days = selectedRange === "today" ? 1 : selectedRange === "7days" ? 7 : selectedRange === "15days" ? 15 : 30;
-        const end = new Date();
-        const start = new Date();
-        start.setDate(end.getDate() - (days - 1));
-        startDate = start.toISOString().split("T")[0];
-        endDate = end.toISOString().split("T")[0];
-      }
+      const days = selectedRange === "today" ? 1 : selectedRange === "7days" ? 7 : selectedRange === "15days" ? 15 : 30;
+      const end = new Date();
+      const start = new Date();
+      start.setDate(end.getDate() - (days - 1));
+      const startDate = start.toISOString().split("T")[0];
+      const endDate = end.toISOString().split("T")[0];
 
       try {
-        const token = localStorage.getItem("token"); // Retrieve token from localStorage
+        const token = localStorage.getItem("token");
         const response = await axios.post(
           `/api/devices/${deviceId}/power-usage/time`,
           {
@@ -47,11 +106,10 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
           },
           {
             headers: {
-              Authorization: `Bearer ${token}`, // Add token to headers
+              Authorization: `Bearer ${token}`,
             },
           }
         );
-        console.log(response.data);
         setFetchedUsageData(response.data);
       } catch (error) {
         console.error("Error fetching usage data:", error);
@@ -59,10 +117,9 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
     };
 
     fetchUsageData();
-  }, [selectedRange, customRange, deviceId]);
+  }, [selectedRange, deviceId]);
 
   useEffect(() => {
-    // Fetch data for "today" when the tab is activated
     setSelectedRange("today");
   }, []);
 
@@ -71,20 +128,11 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
       hours: Math.floor(weeklyLimits[selectedDay]),
       minutes: (weeklyLimits[selectedDay] % 1) * 60,
     });
-  }, [selectedDay, weeklyLimits]);
+    setTempAllowedTimes([...(allowedTimes[selectedDay] || [])]);
+  }, [selectedDay, weeklyLimits, allowedTimes]);
 
   const handleRangeChange = (range) => {
     setSelectedRange(range);
-    if (range === "custom") {
-      setShowCustomPicker(true);
-    } else {
-      setShowCustomPicker(false);
-      setCustomRange({ start: "", end: "" });
-    }
-  };
-
-  const handleCustomRangeChange = (field, value) => {
-    setCustomRange((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleWeeklyLimitChange = (day, value) => {
@@ -93,42 +141,106 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
 
   const handleDayClick = (day) => {
     setSelectedDay(day);
-    setDailyLimit({
-      hours: Math.floor(weeklyLimits[day]),
-      minutes: (weeklyLimits[day] % 1) * 60,
-    });
   };
 
   const handleDailyLimitChange = (field, value) => {
     const updatedValue = Math.max(0, Math.min(field === "hours" ? 24 : 59, Math.floor(value)));
     setDailyLimit((prev) => ({ ...prev, [field]: updatedValue }));
-    setWeeklyLimits((prev) => ({
-      ...prev,
-      [selectedDay]: field === "hours"
-        ? updatedValue + prev[selectedDay] % 1
-        : Math.floor(prev[selectedDay]) + updatedValue / 60,
-    }));
+  };
+
+  const handleAllowedTimeChange = (index, field, value) => {
+    const updatedTimes = [...tempAllowedTimes];
+    const [start, end] = updatedTimes[index].split("-");
+    const newTime = field === "start" ? `${value}-${end}` : `${start}-${value}`;
+    if (/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(newTime)) {
+      updatedTimes[index] = newTime;
+      setTempAllowedTimes(updatedTimes);
+    }
+  };
+
+  const addAllowedTime = () => {
+    setTempAllowedTimes([...tempAllowedTimes, "00:00-00:00"]);
+  };
+
+  const removeAllowedTime = (index) => {
+    setTempAllowedTimes(tempAllowedTimes.filter((_, i) => i !== index));
+  };
+
+  const saveConfigToBackend = async (updatedLimits, updatedAllowedTimes, setDialogOpen, setDialogContent) => {
+    try {
+      const token = localStorage.getItem("token");
+      const configData = {
+        time_limit_daily: Object.keys(updatedLimits).reduce((acc, day) => {
+          acc[day.toLowerCase()] = {
+            max_hours: updatedLimits[day],
+            allowed_time: updatedAllowedTimes[day] || [],
+          };
+          return acc;
+        }, {}),
+      };
+      console.log("Dữ liệu gửi đi:", configData);
+      await axios.put(`/api/devices/${deviceId}/update-time-limit-config`, configData.time_limit_daily, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("Cấu hình đã được lưu lên backend thành công:", configData);
+      setDialogContent({
+        title: "Thành công",
+        message: "Cấu hình đã được lưu thành công!",
+      });
+      setDialogOpen(true);
+    } catch (error) {
+      console.error("Lỗi khi lưu cấu hình:", error.response?.data || error.message);
+      setDialogContent({
+        title: "Lỗi",
+        message: "Lỗi khi lưu cấu hình: " + (error.response?.data?.message || error.message),
+      });
+      setDialogOpen(true);
+    }
   };
 
   const saveDailyLimit = () => {
     const totalHours = dailyLimit.hours + dailyLimit.minutes / 60;
-    setWeeklyLimits((prev) => ({ ...prev, [selectedDay]: totalHours }));
+    const updatedLimits = { ...weeklyLimits, [selectedDay]: totalHours };
+    const updatedAllowedTimes = { ...allowedTimes, [selectedDay]: tempAllowedTimes };
+    console.log("Cập nhật:", { selectedDay, totalHours, tempAllowedTimes });
+    setWeeklyLimits(updatedLimits);
+    setAllowedTimes(updatedAllowedTimes);
+    saveConfigToBackend(updatedLimits, updatedAllowedTimes, setDialogOpen, setDialogContent);
     setSelectedDay(null);
+    setShowWeeklySettings(false);
   };
 
   const generateChartData = () => {
+    const getGradient = (ctx, chartArea) => {
+      const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+      gradient.addColorStop(0, "rgba(59, 130, 246, 0.4)");
+      gradient.addColorStop(1, "rgba(59, 130, 246, 0.8)");
+      return gradient;
+    };
+
     if (selectedRange === "today") {
       return {
         labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
         datasets: [
           {
-            label: "Minutes Used",
+            label: "Phút sử dụng",
             data: Array.from({ length: 24 }, (_, i) =>
               fetchedUsageData
                 .filter((data) => data.hour === i)
                 .reduce((sum, data) => sum + data.usage_minutes, 0)
             ),
-            backgroundColor: "rgba(54, 162, 235, 0.6)",
+            backgroundColor: (context) => {
+              const chart = context.chart;
+              const { ctx, chartArea } = chart;
+              if (!chartArea) return "rgba(59, 130, 246, 0.6)";
+              return getGradient(ctx, chartArea);
+            },
+            borderColor: "rgba(59, 130, 246, 1)",
+            borderWidth: 1,
+            hoverBackgroundColor: "rgba(59, 130, 246, 1)",
+            hoverBorderColor: "rgba(59, 130, 246, 1)",
           },
         ],
       };
@@ -137,20 +249,35 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
       const dateLabels = Array.from({ length: days }, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        return date.toISOString().split("T")[0];
+        return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
       }).reverse();
 
       return {
         labels: dateLabels,
         datasets: [
           {
-            label: "Hours Used",
+            label: "Giờ sử dụng",
             data: dateLabels.map((date) =>
               fetchedUsageData
-                .filter((data) => data.date.startsWith(date))
+                .filter((data) => {
+                  const dataDate = new Date(data.date).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                  });
+                  return dataDate === date;
+                })
                 .reduce((sum, data) => sum + data.usage_minutes / 60, 0)
             ),
-            backgroundColor: "rgba(75, 192, 192, 0.6)",
+            backgroundColor: (context) => {
+              const chart = context.chart;
+              const { ctx, chartArea } = chart;
+              if (!chartArea) return "rgba(75, 192, 192, 0.6)";
+              return getGradient(ctx, chartArea);
+            },
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderWidth: 1,
+            hoverBackgroundColor: "rgba(75, 192, 192, 1)",
+            hoverBorderColor: "rgba(75, 192, 192, 1)",
           },
         ],
       };
@@ -162,30 +289,15 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
       ? fetchedUsageData
       : fetchedUsageData.filter((data) => {
           const dataDate = new Date(data.date);
-          const rangeStart = selectedRange === "custom"
-            ? new Date(customRange.start)
-            : new Date(new Date().setDate(new Date().getDate() - (selectedRange === "7days" ? 6 : selectedRange === "15days" ? 14 : 29)));
-          const rangeEnd = selectedRange === "custom"
-            ? new Date(customRange.end)
-            : new Date();
+          const rangeStart = new Date(new Date().setDate(new Date().getDate() - (selectedRange === "7days" ? 6 : selectedRange === "15days" ? 14 : 29)));
+          const rangeEnd = new Date();
           return dataDate >= rangeStart && dataDate <= rangeEnd;
         });
 
     const totalMinutes = filteredData.reduce((sum, data) => sum + data.usage_minutes, 0);
     const totalHours = (totalMinutes / 60).toFixed(2);
-
-    const daysInRange = selectedRange === "custom"
-      ? (new Date(customRange.end) - new Date(customRange.start)) / (1000 * 60 * 60 * 24) + 1
-      : selectedRange === "7days"
-      ? 7
-      : selectedRange === "15days"
-      ? 15
-      : selectedRange === "30days"
-      ? 30
-      : 1;
-
+    const daysInRange = selectedRange === "7days" ? 7 : selectedRange === "15days" ? 15 : selectedRange === "30days" ? 30 : 1;
     const averageHours = (totalMinutes / 60 / daysInRange).toFixed(2);
-
     const maxMinutes = Math.max(...filteredData.map((data) => data.usage_minutes), 0);
     const maxHours = (maxMinutes / 60).toFixed(2);
 
@@ -195,201 +307,252 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
   const { totalHours, averageHours, maxHours } = calculateSummary();
 
   return (
-    <div>
-      {/* Range Selector */}
-      <div className="flex justify-center space-x-2 mb-4 relative">
-        {["today", "7days", "15days", "30days", "custom"].map((range) => (
-          <button
-            key={range}
-            onClick={() => handleRangeChange(range)}
-            className={`px-3 py-1 text-sm rounded ${
-              selectedRange === range
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-          >
-            {range === "today"
-              ? "Today"
-              : range === "7days"
-              ? "7 Days"
-              : range === "15days"
-              ? "15 Days"
-              : range === "30days"
-              ? "30 Days"
-              : "Custom"}
-          </button>
-        ))}
+    <div className="space-y-6 p-4">
+      {/* Range Selector with Tabs */}
+      <Tabs value={selectedRange} onValueChange={handleRangeChange} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="today">Hôm nay</TabsTrigger>
+          <TabsTrigger value="7days">7 ngày</TabsTrigger>
+          <TabsTrigger value="15days">15 ngày</TabsTrigger>
+          <TabsTrigger value="30days">30 ngày</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
-        {/* Custom Date Range Picker */}
-        {showCustomPicker && (
-          <div className="absolute top-12 bg-white border rounded shadow-lg p-4 z-10">
-            <div className="flex space-x-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Start Date</label>
-                <input
-                  type="date"
-                  value={customRange.start}
-                  onChange={(e) => handleCustomRangeChange("start", e.target.value)}
-                  className="border rounded px-2 py-1 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">End Date</label>
-                <input
-                  type="date"
-                  value={customRange.end}
-                  onChange={(e) => handleCustomRangeChange("end", e.target.value)}
-                  className="border rounded px-2 py-1 text-sm"
-                />
-              </div>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setShowCustomPicker(false)}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Apply
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex space-x-4">
+      {/* Main Content */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Left Side: Circular Date Display */}
-        <div
-          className="w-1/3 flex flex-col items-center justify-center border rounded p-4 bg-gray-50 cursor-pointer"
-          onClick={() => setShowWeeklySettings(true)} // Open modal on click
+        <Card
+          className="flex flex-col items-center justify-center cursor-pointer"
+          onClick={() => setShowWeeklySettings(true)}
         >
-          <div className="w-40 h-40 flex items-center justify-center rounded-full border-4 border-blue-500">
-            <span className="text-lg font-semibold">
-              {selectedRange === "custom"
-                ? `${customRange.start || "Start"} - ${customRange.end || "End"}`
-                : selectedRange === "today"
-                ? "Today"
-                : selectedRange === "7days"
-                ? "Last 7 Days"
-                : selectedRange === "15days"
-                ? "Last 15 Days"
-                : "Last 30 Days"}
+          <CardContent className="flex flex-col items-center pt-6">
+            <div className="w-40 h-40 flex items-center justify-center rounded-full border-4 border-primary">
+              <span className="text-lg font-semibold text-center">
+                {selectedRange === "today"
+                  ? "Hôm nay"
+                  : selectedRange === "7days"
+                  ? "7 ngày qua"
+                  : selectedRange === "15days"
+                  ? "15 ngày qua"
+                  : "30 ngày qua"}
+              </span>
+            </div>
+            <span className="mt-2 text-sm text-muted-foreground">
+              Nhấn để cấu hình giới hạn hàng tuần
             </span>
-          </div>
-          <span className="mt-2 text-sm text-gray-500">Click to configure weekly limits</span>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Right Side: Bar Chart */}
-        <div className="w-2/3 border rounded p-4 bg-gray-50">
-          <Bar
-            data={generateChartData()}
-            options={{
-              responsive: true,
-              plugins: {
-                legend: {
-                  display: false,
-                },
-              },
-              scales: {
-                x: {
-                  title: {
-                    display: true,
-                    text: selectedRange === "today" ? "Hours" : "Days",
+        <Card className="col-span-2">
+          <CardHeader>
+            <CardTitle>Thống kê sử dụng</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="h-[400px]">
+              <Bar
+                data={generateChartData()}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: false,
+                    },
+                    tooltip: {
+                      backgroundColor: "rgba(0, 0, 0, 0.8)",
+                      titleFont: { size: 14, family: "'Inter', sans-serif" },
+                      bodyFont: { size: 12, family: "'Inter', sans-serif" },
+                      padding: 10,
+                      callbacks: {
+                        label: (context) =>
+                          `${context.dataset.label}: ${context.raw.toFixed(2)} ${
+                            selectedRange === "today" ? "phút" : "giờ"
+                          }`,
+                      },
+                    },
                   },
-                },
-                y: {
-                  title: {
-                    display: true,
-                    text: selectedRange === "today" ? "Minutes Used" : "Hours Used",
+                  scales: {
+                    x: {
+                      title: {
+                        display: true,
+                        text: selectedRange === "today" ? "Giờ" : "Ngày",
+                        font: { size: 14, family: "'Inter', sans-serif" },
+                        color: "#1f2937",
+                      },
+                      ticks: {
+                        font: { size: 12, family: "'Inter', sans-serif" },
+                        color: "#4b5563",
+                        maxRotation: 45,
+                        minRotation: 45,
+                      },
+                      grid: { display: false },
+                    },
+                    y: {
+                      title: {
+                        display: true,
+                        text: selectedRange === "today" ? "Phút sử dụng" : "Giờ sử dụng",
+                        font: { size: 14, family: "'Inter', sans-serif" },
+                        color: "#1f2937",
+                      },
+                      ticks: {
+                        font: { size: 12, family: "'Inter', sans-serif" },
+                        color: "#4b5563",
+                        callback: (value) => `${value}${selectedRange === "today" ? "m" : "h"}`,
+                      },
+                      grid: {
+                        color: "rgba(0, 0, 0, 0.05)",
+                        drawBorder: false,
+                      },
+                      beginAtZero: true,
+                    },
                   },
-                  beginAtZero: true,
-                },
-              },
-            }}
-          />
-        </div>
+                  animation: {
+                    duration: 1000,
+                    easing: "easeOutQuart",
+                  },
+                }}
+                aria-label="Biểu đồ thống kê thời gian sử dụng thiết bị"
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-  
 
       {/* Summary Card */}
-      <div className="mt-6 border rounded p-4 bg-gray-50">
-        <h3 className="text-md font-semibold mb-4">Summary</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex flex-col items-center">
-            <span className="text-lg font-bold">{totalHours} hrs</span>
-            <span className="text-sm text-gray-500">Total Screen Time</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-lg font-bold">{averageHours} hrs</span>
-            <span className="text-sm text-gray-500">Average Daily Usage</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-lg font-bold">{maxHours} hrs</span>
-            <span className="text-sm text-gray-500">Max Usage in a Day</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Weekly Screen Time Limits Modal */}
-      {showWeeklySettings && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
-            <h3 className="text-lg font-semibold mb-4 text-center">Configure Weekly Screen Time Limits</h3>
-            <div className="flex justify-center space-x-2 mb-4">
-              {Object.keys(weeklyLimits).map((day) => (
-                <button
-                  key={day}
-                  onClick={() => setSelectedDay(day)}
-                  className={`w-10 h-10 flex items-center justify-center rounded-full border ${
-                    selectedDay === day ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
-                >
-                  {day.slice(0, 2)}
-                </button>
-              ))}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tóm tắt sử dụng</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex flex-col items-center">
+              <span className="text-lg font-bold">{totalHours} giờ</span>
+              <span className="text-sm text-muted-foreground">Tổng thời gian sử dụng</span>
             </div>
-            <div className="border rounded-lg p-4 shadow-md">
-              <div className="flex justify-center space-x-6">
+            <div className="flex flex-col items-center">
+              <span className="text-lg font-bold">{averageHours} giờ</span>
+              <span className="text-sm text-muted-foreground">Thời gian trung bình hàng ngày</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-lg font-bold">{maxHours} giờ</span>
+              <span className="text-sm text-muted-foreground">Thời gian tối đa trong ngày</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Weekly Screen Time Limits Dialog */}
+      <Dialog open={showWeeklySettings} onOpenChange={setShowWeeklySettings}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cấu hình giới hạn thời gian sử dụng hàng tuần</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center space-x-2 mb-4">
+            {Object.keys(weeklyLimits).map((day) => (
+              <Button
+                key={day}
+                variant={selectedDay === day ? "default" : "outline"}
+                size="sm"
+                className="w-10 h-10 rounded-full"
+                onClick={() => handleDayClick(day)}
+              >
+                {day.slice(0, 2)}
+              </Button>
+            ))}
+          </div>
+          <Card>
+            <CardContent className="pt-6 space-y-6">
+              {/* Daily Limit */}
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Hours</label>
-                  <input
+                  <Label htmlFor="hours">Giờ</Label>
+                  <Input
+                    id="hours"
                     type="number"
                     value={dailyLimit.hours}
                     onChange={(e) => handleDailyLimitChange("hours", parseInt(e.target.value, 10))}
-                    className="border rounded px-3 py-2 text-sm w-20 text-center"
                     min="0"
                     max="24"
+                    className="text-center"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Minutes</label>
-                  <input
+                  <Label htmlFor="minutes">Phút</Label>
+                  <Input
+                    id="minutes"
                     type="number"
-                    value={Math.floor(dailyLimit.minutes)} // Ensure minutes are displayed as integers
+                    value={Math.floor(dailyLimit.minutes)}
                     onChange={(e) => handleDailyLimitChange("minutes", parseInt(e.target.value, 10))}
-                    className="border rounded px-3 py-2 text-sm w-20 text-center"
                     min="0"
                     max="59"
+                    className="text-center"
                   />
                 </div>
               </div>
-            </div>
-            <div className="mt-6 flex justify-center space-x-4">
-              <button
-                onClick={() => setShowWeeklySettings(false)}
-                className="px-6 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => setShowWeeklySettings(false)}
-                className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Save
-              </button>
-            </div>
+              {/* Allowed Times */}
+              <div>
+                <Label>Thời gian được phép</Label>
+                <div className="space-y-4 mt-2 px-2">
+                  {tempAllowedTimes.map((time, index) => (
+                    <div key={index} className="flex items-center space-x-4 flex-wrap">
+                      <Input
+                        type="time"
+                        value={time.split("-")[0]}
+                        onChange={(e) => handleAllowedTimeChange(index, "start", e.target.value)}
+                        className="w-32"
+                      />
+                      <span>-</span>
+                      <Input
+                        type="time"
+                        value={time.split("-")[1]}
+                        onChange={(e) => handleAllowedTimeChange(index, "end", e.target.value)}
+                        className="w-32"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => removeAllowedTime(index)}
+                        aria-label="Xóa khoảng thời gian"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button variant="outline" onClick={addAllowedTime} className="w-full">
+                    Thêm mới
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowWeeklySettings(false)}>
+              Hủy
+            </Button>
+            <Button onClick={saveDailyLimit}>
+              Lưu
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notification Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{dialogContent.title}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p>{dialogContent.message}</p>
           </div>
-        </div>
-      )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Đóng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

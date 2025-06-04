@@ -1,26 +1,37 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import defaultIcon from '../../resource/default_icon.png'; // Adjust the path as necessary
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Search } from "lucide-react";
+import defaultIcon from "../../resource/default_icon.png";
 
-export default function ApplicationsTab({ isActive, deviceId, restrictedApps, onToggle, onSetLimit, onUninstall }) {
+export default function ApplicationsTab({ isActive, deviceId, onToggle, onUninstall }) {
   const [installedApps, setInstalledApps] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(""); // State for search term
-  const [modalMessage, setModalMessage] = useState(""); // State for modal message
-  const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
-  const [restrictedState, setRestrictedState] = useState({}); // State to track restriction per app
+  const [searchTerm, setSearchTerm] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [restrictedState, setRestrictedState] = useState({});
+  const [blockedApps, setBlockedApps] = useState([]);
+  const [uninstallApps, setUninstallApps] = useState([]);
+  const [selectedApp, setSelectedApp] = useState(null);
+  const [modalAction, setModalAction] = useState(null); // Track action (uninstall or unmark)
 
   useEffect(() => {
-    if (!isActive || !deviceId) return; // Fetch data only when the tab is active and deviceId is provided
+    if (!isActive || !deviceId) return;
 
     const fetchInstalledApps = async () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(`/api/devices/${deviceId}/installed-apps`, {
           headers: {
-            Authorization: `Bearer ${token}`, // Add token to headers
+            Authorization: `Bearer ${token}`,
           },
         });
-        console.log("Installed apps response:", response.data); // Log the response data
         setInstalledApps(response.data);
       } catch (error) {
         console.error("Error fetching installed apps:", error);
@@ -28,115 +39,268 @@ export default function ApplicationsTab({ isActive, deviceId, restrictedApps, on
     };
 
     fetchInstalledApps();
-  }, [isActive, deviceId]); // Re-run when `isActive` or `deviceId` changes
+  }, [isActive, deviceId]);
 
-  if (!isActive) return null; // Render nothing if the tab is not active
+  useEffect(() => {
+    if (!isActive || !deviceId || installedApps.length === 0) return;
 
-  const filteredApps = installedApps.filter((app) =>
-    app.app_name.toLowerCase().includes(searchTerm.toLowerCase())
-  ); // Filter apps by search term
+    const fetchConfig = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`/api/devices/${deviceId}/config`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const configApps = response.data[0]?.config_apps;
+        if (configApps) {
+          setBlockedApps(configApps.blocked || []);
+          setUninstallApps(configApps.uninstall || []);
 
-  const handleUninstallClick = (app) => {
-    if (app.quiet_uninstall_string === null) {
-      setModalMessage(`Please manually uninstall ${app.app_name} on the device.`);
-      setIsModalVisible(true);
-    } else {
-      if (window.confirm(`Are you sure you want to uninstall ${app.app_name}? It will be removed on the next device restart.`)) {
-        onUninstall(app.app_name);
-        setModalMessage(`${app.app_name} will be uninstalled on the next device restart.`);
-        setIsModalVisible(true);
+          // Initialize restrictedState based on blocked apps
+          const initialRestrictedState = {};
+          configApps.blocked.forEach((blockedApp) => {
+            installedApps.forEach((app) => {
+              if (blockedApp.app_id === app.install_location && blockedApp.app_name === app.app_name) {
+                initialRestrictedState[app.app_name] = true;
+              }
+            });
+          });
+          setRestrictedState(initialRestrictedState);
+        }
+      } catch (error) {
+        console.error("Error fetching config:", error);
       }
+    };
+
+    fetchConfig();
+  }, [isActive, deviceId, installedApps]);
+
+  const updateConfigApps = async (newBlockedApps, newUninstallApps) => {
+    try {
+      const token = localStorage.getItem("token");
+      const updatedConfig = {
+          blocked: newBlockedApps,
+          uninstall: newUninstallApps,
+      };
+      await axios.put(`/api/devices/${deviceId}/update-app-config`, updatedConfig, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setBlockedApps(newBlockedApps);
+      setUninstallApps(newUninstallApps);
+    } catch (error) {
+      console.error("Error updating config:", error);
     }
   };
 
-  const handleToggleRestriction = (appName) => {
+  const handleToggleRestriction = async (app) => {
+    const appName = app.app_name;
+    const appId = app.install_location;
+    let newBlockedApps;
+
+    if (isBlocked(app)) {
+      newBlockedApps = blockedApps.filter(
+        (blockedApp) => !(blockedApp.app_id === appId && blockedApp.app_name === appName)
+      );
+    } else {
+      newBlockedApps = [...blockedApps, { app_id: appId, app_name: appName }];
+    }
+
     setRestrictedState((prevState) => ({
       ...prevState,
-      [appName]: !prevState[appName], // Toggle the restriction state
+      [appName]: !prevState[appName],
     }));
-    onToggle(appName); // Call the provided toggle function
+    await updateConfigApps(newBlockedApps, uninstallApps);
+    // onToggle(appName);
   };
 
+  const handleUninstallClick = (app) => {
+    if (app.quiet_uninstall_string === null) {
+      setModalMessage(`Vui lòng gỡ cài đặt ${app.app_name} thủ công trên thiết bị.`);
+      setIsModalVisible(true);
+    } else {
+      setModalMessage(`Bạn có chắc chắn muốn gỡ cài đặt ${app.app_name}? Ứng dụng sẽ được gỡ vào lần khởi động lại tiếp theo.`);
+      setSelectedApp(app);
+      setModalAction("uninstall");
+      setIsModalVisible(true);
+    }
+  };
+
+  const handleUnmarkUninstallClick = (app) => {
+    setModalMessage(`Bạn có chắc chắn muốn bỏ đánh dấu gỡ cài đặt ${app.app_name}?`);
+    setSelectedApp(app);
+    setModalAction("unmark");
+    setIsModalVisible(true);
+  };
+
+  const confirmAction = async () => {
+    if (!selectedApp) return;
+
+    if (modalAction === "uninstall") {
+      const newUninstallApps = [
+        ...uninstallApps,
+        {
+          app_name: selectedApp.app_name,
+          quiet_uninstall_string: selectedApp.quiet_uninstall_string,
+        },
+      ];
+      await updateConfigApps(blockedApps, newUninstallApps);
+      // onUninstall(selectedApp.app_name);
+      setModalMessage(`${selectedApp.app_name} đã được đánh dấu để gỡ cài đặt vào lần khởi động lại tiếp theo.`);
+    } else if (modalAction === "unmark") {
+      const newUninstallApps = uninstallApps.filter(
+        (uninstallApp) => uninstallApp.app_name !== selectedApp.app_name
+      );
+      await updateConfigApps(blockedApps, newUninstallApps);
+      setModalMessage(`${selectedApp.app_name} đã được bỏ đánh dấu gỡ cài đặt.`);
+    }
+
+    setSelectedApp(null);
+    setModalAction(null);
+  };
+
+  const isBlocked = (app) => {
+    return blockedApps.some(
+      (blockedApp) => blockedApp.app_id === app.install_location && blockedApp.app_name === app.app_name
+    );
+  };
+
+  const isMarkedForUninstall = (app) => {
+    return uninstallApps.some((uninstallApp) => uninstallApp.app_name === app.app_name);
+  };
+
+  const filteredApps = installedApps.filter((app) =>
+    app.app_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="p-6 bg-gray-100 rounded-lg shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Applications</h2>
-        <input
-          type="text"
-          placeholder="Search apps..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-        />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredApps.length > 0 ? (
-          filteredApps.map((app) => (
-            <div key={app.id} className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
-              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-                {app.app_icon ? (
-                  <img 
-                    src={`data:image/png;base64,${app.app_icon}`} 
-                    alt={`${app.app_name} icon`} 
-                    className="w-full h-full rounded-full" 
-                  />
-                ) : (
-                  <img
-                    src={defaultIcon}
-                    alt="Default app icon"
-                    className="w-full h-full rounded-full"
-                  />
-                )}
-              </div>
-              <h3 className="text-lg font-medium text-gray-800 mb-2">{app.app_name || "Unknown App"}</h3>
-              <p className="text-sm text-gray-600 mb-1">Version: {app.display_version || "N/A"}</p>
-              <p className="text-sm text-gray-600 mb-1">Publisher: {app.publisher || "N/A"}</p>
-              <div className="flex flex-col items-center space-y-2">
-                <button
-                  onClick={() => handleToggleRestriction(app.app_name)}
-                  className={`px-3 py-1 rounded text-xs font-medium ${
-                    restrictedState[app.app_name]
-                      ? "bg-green-500 text-white hover:bg-green-600" // Change to green when unrestricted
-                      : "bg-red-500 text-white hover:bg-red-600" // Change to red when restricted
-                  }`}
-                >
-                  {restrictedState[app.app_name] ? "Unrestricted" : "Restricted"}
-                </button>
-                <button
-                  onClick={() => {
-                    const limit = prompt(`Set usage limit for ${app.app_name} (in minutes):`);
-                    if (limit) onSetLimit(app.app_name, parseInt(limit, 10));
-                  }}
-                  className="px-3 py-1 rounded bg-green-500 text-white text-xs font-medium hover:bg-green-600"
-                >
-                  Set Time Limit
-                </button>
-                <button
-                  onClick={() => handleUninstallClick(app)}
-                  className="px-3 py-1 rounded bg-gray-500 text-white text-xs font-medium hover:bg-gray-600"
-                >
-                  Uninstall
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p className="text-center text-gray-600">No applications installed on this device.</p>
-        )}
-      </div>
-      {isModalVisible && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full text-center">
-            <p className="text-gray-800 mb-6 text-lg font-medium">{modalMessage}</p>
-            <button
-              onClick={() => setIsModalVisible(false)}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              Close
-            </button>
+    <div className="space-y-6">
+      {/* Search */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Tìm kiếm ứng dụng..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
+
+      {/* Applications Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Danh sách ứng dụng</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredApps.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-16">Icon</TableHead>
+                  <TableHead>Tên ứng dụng</TableHead>
+                  <TableHead>Phiên bản</TableHead>
+                  <TableHead>Nhà phát hành</TableHead>
+                  <TableHead className="text-right">Hành động</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredApps.map((app) => (
+                  <TableRow key={app.id}>
+                    <TableCell>
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage
+                          src={app.app_icon ? `data:image/png;base64,${app.app_icon}` : defaultIcon}
+                          alt={`${app.app_name} icon`}
+                        />
+                        <AvatarFallback>{app.app_name?.[0] || "N/A"}</AvatarFallback>
+                      </Avatar>
+                    </TableCell>
+                    <TableCell>{app.app_name || "Không xác định"}</TableCell>
+                    <TableCell>{app.version || "N/A"}</TableCell>
+                    <TableCell>{app.publisher || "N/A"}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant={isBlocked(app) ? "default" : "destructive"}
+                                size="sm"
+                                onClick={() => handleToggleRestriction(app)}
+                              >
+                                {isBlocked(app) ? "Bỏ hạn chế" : "Hạn chế"}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {isBlocked(app) ? "Bỏ hạn chế ứng dụng này" : "Hạn chế ứng dụng này"}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant={isMarkedForUninstall(app) ? "outline" : "outline"}
+                                size="sm"
+                                onClick={() =>
+                                  isMarkedForUninstall(app)
+                                    ? handleUnmarkUninstallClick(app)
+                                    : handleUninstallClick(app)
+                                }
+                              >
+                                {isMarkedForUninstall(app) ? "Bỏ đánh dấu gỡ" : "Gỡ cài đặt"}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {isMarkedForUninstall(app)
+                                ? "Bỏ đánh dấu gỡ cài đặt ứng dụng"
+                                : "Gỡ cài đặt ứng dụng"}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center text-muted-foreground py-4">
+              Không có thông tin ứng dụng nào được tìm thấy.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Action Confirmation Dialog */}
+      <Dialog open={isModalVisible} onOpenChange={setIsModalVisible}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Thông báo</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p>{modalMessage}</p>
+          </div>
+          <DialogFooter>
+            {selectedApp && modalMessage.includes("Bạn có chắc chắn") ? (
+              <>
+                <Button variant="outline" onClick={() => setIsModalVisible(false)}>
+                  Hủy
+                </Button>
+                <Button onClick={confirmAction}>Xác nhận</Button>
+              </>
+            ) : (
+              <Button onClick={() => setIsModalVisible(false)}>Đóng</Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

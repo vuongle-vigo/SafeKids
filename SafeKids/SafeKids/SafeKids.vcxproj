@@ -137,7 +137,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AppMonitor.hpp" />
+    <ClInclude Include="AppMonitor.h" />
     <ClInclude Include="Client2Server.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Communication.h" />

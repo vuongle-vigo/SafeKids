@@ -119,7 +119,65 @@ bool HttpClient::PushProcessUsage(json data) {
 	return true;	
 }
 
+bool HttpClient::PushApplication(json data) {
+	Config& cfg = Config::GetInstance();
+	Client m_client(cfg.GetHost(), cfg.GetPort());
+	Headers headers = {
+		{ "Authorization", "Bearer " + m_sToken }
+	};
+	auto response = m_client.Post("/api/kid/add-installed-apps", headers, data.dump(), "application/json");
+	if (response && response->status == 201) {
+		std::cout << "Response: " << response->body << std::endl;
+	}
+	else {
+		std::cerr << "Request failed: " << response->status << std::endl;
+		return false;
+	}
+	return true;
+}
+
 std::string HttpClient::GetToken() {
 	return m_sToken;
 }
 
+json HttpClient::SendRequestGetConfig() {
+	Config& cfg = Config::GetInstance();
+	json result;
+	Client m_client(cfg.GetHost(), cfg.GetPort());
+	Headers headers = {
+		{ "Authorization", "Bearer " + m_sToken }
+	};
+	auto response = m_client.Get("/api/kid/get-config", headers);
+	if (response && response->status == 200) {
+		try {
+			result = json::parse(response->body)[0];
+		}
+		catch (const json::parse_error& e) {
+			std::cerr << "JSON parse error: " << e.what() << std::endl;
+			return json();
+		}
+	}
+	else {
+		std::cerr << "Request failed: " << response->status << std::endl;
+		return json();
+	}
+	return result;
+}
+
+bool HttpClient::SendRequestUpdateOnline() {
+	Config& cfg = Config::GetInstance();
+	Client m_client(cfg.GetHost(), cfg.GetPort());
+	Headers headers = {
+		{ "Authorization", "Bearer " + m_sToken }
+	};
+	auto response = m_client.Post("/api/kid/update-status", headers, {""}, "application/json");
+	if (response && response->status == 201) {
+		std::cout << "Response: " << response->body << std::endl;
+	}
+	else {
+		std::cerr << "Request failed: " << response->status << std::endl;
+		return false;
+	}
+
+	return true;
+}

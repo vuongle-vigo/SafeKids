@@ -1,5 +1,6 @@
 #include "ProcessMonitor.hpp"
 #include "SQLiteDB.h"
+#include "Config.h"
 
 std::string ProcessMonitor::GetActiveWindowProcessPath() {
     HWND hwnd = GetForegroundWindow();
@@ -147,11 +148,32 @@ BOOL ProcessMonitor::StopProcess(std::string& sProcessName) {
     return false;
 }
 
+bool ProcessMonitor::CheckBlockApp(std::string &sProcessPath) {
+	ConfigMonitor& configMonitor = ConfigMonitor::GetInstance();
+	ConfigMonitor::ConfigData configData = configMonitor.GetConfig();
+	ConfigMonitor::AppConfig configApps = configData.config_apps;
+    std::string path = ToLowercase(RemoveQuotes(sProcessPath));
+	for (const auto& app : configApps.blocked) {
+		std::string pathCheck = ToLowercase(RemoveQuotes(app.app_id));
+		if (path.find(pathCheck) == 0) {
+			std::wcout << L"Blocked App Detected: " << pathCheck.c_str() << std::endl;
+			MessageBoxA(
+				NULL,
+				(std::string("Blocked App Detected: ") + pathCheck).c_str(),
+				"App Blocked",
+				MB_OK | MB_ICONWARNING
+			);
+			return true; // Blocked app found
+		}
+	}
+}
+
 void ProcessMonitor::MonitorProcessUsage() {
 	ProcessUsageDB& processUsageDB = ProcessUsageDB::GetInstance();
 	PowerUsageDB& powerUsageDB = PowerUsageDB::GetInstance();
     while (1) {
 		std::wstring wsActiveWindowTitle = GetActiveWindowTitle();
+        CheckBlockApp(m_processInfo.m_sProcessPath);
 		if (m_processInfo.m_wsProcessTitle != wsActiveWindowTitle) {
 			m_processInfo.m_wsProcessTitle = wsActiveWindowTitle;
 			//std::wcout << L"Active Window Title: " << m_processInfo.m_wsProcessTitle << std::endl;
@@ -169,7 +191,7 @@ void ProcessMonitor::MonitorProcessUsage() {
         else {
 			m_processInfo.m_fTimeUsage += m_fTimeDelayQuery / 60000; // Convert milliseconds to minutes
 			std::wcout << L"Process Path: " << m_processInfo.m_sProcessPath.c_str() << L", Time Usage: " << m_processInfo.m_fTimeUsage << L" minutes" << std::endl;
-			//Update database
+            //Update database
             processUsageDB.update_lastest(
                 m_processInfo.m_wsProcessTitle,
                 m_processInfo.m_sProcessPath,

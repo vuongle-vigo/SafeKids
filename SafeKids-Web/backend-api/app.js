@@ -24,7 +24,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors({
     origin: 'http://localhost:5173',  
-    methods: ['GET', 'POST', 'OPTIONS'],  
+    methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],  
     allowedHeaders: ['Authorization', 'Content-Type'],  
   }));
 
@@ -37,14 +37,13 @@ app.use('/api/kid', kidRoutes);
 app.use(express.static(path.join(__dirname, '../frontend-safekids')));
 
 const server = http.createServer(app);
-initWebSocketServer(server);
+// initWebSocketServer(server);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8889;
 const HOST = process.env.HOST || 'localhost';
 
 server.listen(PORT, HOST, () => {
   console.log(`Server is running at http://${HOST}:${PORT}`);
-  console.log(`WebSocket server is running at ws://${HOST}:${PORT}`);
 });
 
 module.exports = app;

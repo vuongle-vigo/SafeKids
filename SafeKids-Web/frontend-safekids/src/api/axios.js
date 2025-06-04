@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 // Tạo một instance axios mới
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:3000',  // URL gốc của API
+  baseURL: 'http://localhost:8889',  // URL gốc của API
   timeout: 10000,  // Timeout nếu yêu cầu mất quá lâu
 });
 
