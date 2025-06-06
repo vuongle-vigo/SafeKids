@@ -18,8 +18,22 @@ Login& Login::GetInstance() {
 	static Login instance;
 	return instance;
 }
-
+#include <sddl.h>
+#pragma comment(lib, "advapi32.lib")
 bool Login::InitPipeServer() {
+	SECURITY_ATTRIBUTES sa;
+	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+	sa.bInheritHandle = FALSE;
+
+	PSECURITY_DESCRIPTOR pSD = NULL;
+	const char* sddl = "D:(A;;GA;;;WD)";
+	if (!ConvertStringSecurityDescriptorToSecurityDescriptorA(sddl, SDDL_REVISION_1, &pSD, NULL)) {
+		LogToFile("Failed to create security descriptor: " + std::to_string(GetLastError()));
+		return false;
+	}
+
+	sa.lpSecurityDescriptor = pSD;
+
 	HANDLE hPipe = CreateNamedPipeW(
 		LOGIN_PIPE_NAME,
 		PIPE_ACCESS_DUPLEX,
@@ -28,7 +42,7 @@ bool Login::InitPipeServer() {
 		MAX_MESSAGE_SIZE, // Output buffer size
 		MAX_MESSAGE_SIZE, // Input buffer size
 		0, // Default timeout
-		NULL // Default security attributes
+		&sa // Default security attributes
 	);
 	if (hPipe == INVALID_HANDLE_VALUE) {
 		PRINT_API_ERR("CreateNamedPipeW");
@@ -103,21 +117,26 @@ bool Login::Install() {
 	// Installation logic
 	STARTUPINFOW si = { sizeof(si) };
 	PROCESS_INFORMATION pi = { 0 };
-
+	si.dwFlags = STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_SHOW; 
 	std::cout << "Installing SafeKidsLogin..." << std::endl;
-	if (!CreateProcessW(
-		m_wszLoginPath.c_str(), // Application name
-		NULL,                   // Command line arguments
-		NULL,                   // Process security attributes
-		NULL,                   // Primary thread security attributes
-		FALSE,                 // Inherit handles
-		0,                     // Creation flags
-		NULL,                  // Environment block
-		NULL,                  // Current directory
-		&si,
-		&pi
-	)) {
-		PRINT_API_ERR("CreateProcessW");
+	//if (!CreateProcessW(
+	//	m_wszLoginPath.c_str(), // Application name
+	//	NULL,                   // Command line arguments
+	//	NULL,                   // Process security attributes
+	//	NULL,                   // Primary thread security attributes
+	//	FALSE,                 // Inherit handles
+	//	CREATE_NEW_CONSOLE,                     // Creation flags
+	//	NULL,                  // Environment block
+	//	NULL,                  // Current directory
+	//	&si,
+	//	&pi
+	//)) {
+	//	PRINT_API_ERR("CreateProcessW");
+	//	return false;
+	//}
+	if (!StartProcessInUserSession(m_wszLoginPath)) {
+		std::cout << "Failed to start process in user session." << std::endl;
 		return false;
 	}
 

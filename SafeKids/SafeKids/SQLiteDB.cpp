@@ -3,8 +3,8 @@
 #include <iostream>
 
 // SQLiteDB class implementation
-SQLiteDB::SQLiteDB(const std::string& dbName) {
-    if (sqlite3_open(dbName.c_str(), &db) != SQLITE_OK) {
+SQLiteDB::SQLiteDB() {
+    if (sqlite3_open(dbPath.c_str(), &db) != SQLITE_OK) {
         std::cerr << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
         db = nullptr;
     }
@@ -17,7 +17,7 @@ SQLiteDB::~SQLiteDB() {
 }
 
 SQLiteDB& SQLiteDB::GetInstance() {
-	static SQLiteDB instance(SQLITE_DB_PATH);
+	static SQLiteDB instance;
 	return instance;
 }
 
@@ -525,6 +525,17 @@ bool AppDB::add(const std::string& app_name, const std::string& version, const s
         sqlite3_finalize(insertStmt);
         return success;
     }
+}
+
+bool AppDB::delete_all() {
+	const char* sql = "DELETE FROM installed_apps;";
+	sqlite3_stmt* stmt;
+	if (sqlite3_prepare_v2(db.getDB(), sql, -1, &stmt, nullptr) != SQLITE_OK) {
+		return false;
+	}
+	bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+	sqlite3_finalize(stmt);
+	return success;
 }
 
 bool AppDB::update_status(const std::string& app_name, const std::string& status) {

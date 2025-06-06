@@ -1,6 +1,20 @@
 #include "ProcessMonitor.hpp"
 #include "SQLiteDB.h"
 #include "Config.h"
+#include <thread>
+#include "SafeKidsTray.h"
+
+ProcessMonitor::ProcessMonitor() {
+	m_processInfo.m_fTimeUsage = 0.0;
+}
+
+ProcessMonitor::~ProcessMonitor() {
+}
+
+ProcessMonitor& ProcessMonitor::GetInstance() {
+	static ProcessMonitor instance;
+	return instance;
+}
 
 std::string ProcessMonitor::GetActiveWindowProcessPath() {
     HWND hwnd = GetForegroundWindow();
@@ -148,21 +162,32 @@ BOOL ProcessMonitor::StopProcess(std::string& sProcessName) {
     return false;
 }
 
+bool ProcessMonitor::SetInfoProcess(const std::string& sProcessPath, const std::wstring& wsProcessTitle) {
+	m_processInfo.msCurrentProcessPath = sProcessPath;
+	m_processInfo.m_wsCurrentWindowTitle = wsProcessTitle;
+	return true;
+}
+
 bool ProcessMonitor::CheckBlockApp(std::string &sProcessPath) {
 	ConfigMonitor& configMonitor = ConfigMonitor::GetInstance();
 	ConfigMonitor::ConfigData configData = configMonitor.GetConfig();
 	ConfigMonitor::AppConfig configApps = configData.config_apps;
+	SafeKidsTray& safeKidsTray = SafeKidsTray::GetInstance();
     std::string path = ToLowercase(RemoveQuotes(sProcessPath));
 	for (const auto& app : configApps.blocked) {
 		std::string pathCheck = ToLowercase(RemoveQuotes(app.app_id));
 		if (path.find(pathCheck) == 0) {
 			std::wcout << L"Blocked App Detected: " << pathCheck.c_str() << std::endl;
-			MessageBoxA(
-				NULL,
-				(std::string("Blocked App Detected: ") + pathCheck).c_str(),
-				"App Blocked",
-				MB_OK | MB_ICONWARNING
-			);
+            std::string message = "Blocked App Detected: " + path;
+           /* std::thread([message]() {
+                MessageBoxA(
+                    NULL,
+                    message.c_str(),
+                    "App Blocked",
+                    MB_OK | MB_ICONWARNING
+                );
+                }).detach();*/
+			safeKidsTray.SendMessageToTray(StringToWstring(message));
 			return true; // Blocked app found
 		}
 	}
@@ -171,32 +196,39 @@ bool ProcessMonitor::CheckBlockApp(std::string &sProcessPath) {
 void ProcessMonitor::MonitorProcessUsage() {
 	ProcessUsageDB& processUsageDB = ProcessUsageDB::GetInstance();
 	PowerUsageDB& powerUsageDB = PowerUsageDB::GetInstance();
+    std::string sTime;
     while (1) {
-		std::wstring wsActiveWindowTitle = GetActiveWindowTitle();
+		//std::wstring wsActiveWindowTitle = GetActiveWindowTitle();
         CheckBlockApp(m_processInfo.m_sProcessPath);
-		if (m_processInfo.m_wsProcessTitle != wsActiveWindowTitle) {
-			m_processInfo.m_wsProcessTitle = wsActiveWindowTitle;
+		if (m_processInfo.m_wsProcessTitle != m_processInfo.m_wsCurrentWindowTitle && !m_processInfo.m_wsCurrentWindowTitle.empty()) {
+			sTime = GetCurrentTimeHour();
+			m_processInfo.m_wsProcessTitle = m_processInfo.m_wsCurrentWindowTitle;
 			//std::wcout << L"Active Window Title: " << m_processInfo.m_wsProcessTitle << std::endl;
-            m_processInfo.m_sProcessPath = GetActiveWindowProcessPath();
+            //m_processInfo.m_sProcessPath = GetActiveWindowProcessPath();
+			m_processInfo.m_sProcessPath = m_processInfo.msCurrentProcessPath;
 			m_processInfo.m_fTimeUsage = 0;
             //Insert new database
 			processUsageDB.add(
                 m_processInfo.m_wsProcessTitle,
 				m_processInfo.m_sProcessPath,
 				GetCurrentDate(),
-				GetCurrentTimeHour(),
+                sTime,
 				m_processInfo.m_fTimeUsage
 			);
         }
         else {
 			m_processInfo.m_fTimeUsage += m_fTimeDelayQuery / 60000; // Convert milliseconds to minutes
 			std::wcout << L"Process Path: " << m_processInfo.m_sProcessPath.c_str() << L", Time Usage: " << m_processInfo.m_fTimeUsage << L" minutes" << std::endl;
+			LogToFile(
+				"Process Path: " + m_processInfo.m_sProcessPath +
+				", Time Usage: " + std::to_string(m_processInfo.m_fTimeUsage) + " minutes"
+			);
             //Update database
             processUsageDB.update_lastest(
                 m_processInfo.m_wsProcessTitle,
                 m_processInfo.m_sProcessPath,
                 GetCurrentDate(),
-                GetCurrentTimeHour(),
+                sTime,
                 m_processInfo.m_fTimeUsage
             );
         }

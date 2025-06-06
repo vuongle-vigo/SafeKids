@@ -193,7 +193,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                         break;
 					}
                     else if (!wcscmp(response, L"failed")) {
-                        std::cout << "ABC" << std::endl;
                         break;
                     }
                 }
@@ -220,7 +219,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 }
 
 // Hàm chính
-int WINAPI main(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
     // Khởi tạo Common Controls
     INITCOMMONCONTROLSEX icc = { sizeof(icc), ICC_WIN95_CLASSES };
     InitCommonControlsEx(&icc);

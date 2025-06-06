@@ -21,7 +21,7 @@ public:
 	static ComputerInfo& GetInstance();
 	bool SetMachineGUID();
 	std::string GetMachineGUID();
-
+	std::string GetDesktopName();
 private:
 	std::string m_szMachineGUID;
 };

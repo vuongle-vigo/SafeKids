@@ -14,10 +14,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2 } from "lucide-react";
+import { Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format, isSameDay } from "date-fns";
 
 export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, deviceId }) {
   const [selectedRange, setSelectedRange] = useState("today");
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [showWeeklySettings, setShowWeeklySettings] = useState(false);
   const [weeklyLimits, setWeeklyLimits] = useState({
     Monday: 4,
@@ -89,12 +93,18 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
 
   useEffect(() => {
     const fetchUsageData = async () => {
-      const days = selectedRange === "today" ? 1 : selectedRange === "7days" ? 7 : selectedRange === "15days" ? 15 : 30;
-      const end = new Date();
-      const start = new Date();
-      start.setDate(end.getDate() - (days - 1));
-      const startDate = start.toISOString().split("T")[0];
-      const endDate = end.toISOString().split("T")[0];
+      let startDate, endDate;
+      if (selectedRange === "today") {
+        startDate = format(selectedDate, "yyyy-MM-dd");
+        endDate = startDate;
+      } else {
+        const days = selectedRange === "7days" ? 7 : selectedRange === "15days" ? 15 : 30;
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - (days - 1));
+        startDate = format(start, "yyyy-MM-dd");
+        endDate = format(end, "yyyy-MM-dd");
+      }
 
       try {
         const token = localStorage.getItem("token");
@@ -117,11 +127,7 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
     };
 
     fetchUsageData();
-  }, [selectedRange, deviceId]);
-
-  useEffect(() => {
-    setSelectedRange("today");
-  }, []);
+  }, [selectedRange, selectedDate, deviceId]);
 
   useEffect(() => {
     setDailyLimit({
@@ -133,6 +139,9 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
 
   const handleRangeChange = (range) => {
     setSelectedRange(range);
+    if (range === "today") {
+      setSelectedDate(new Date());
+    }
   };
 
   const handleWeeklyLimitChange = (day, value) => {
@@ -166,7 +175,7 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
     setTempAllowedTimes(tempAllowedTimes.filter((_, i) => i !== index));
   };
 
-  const saveConfigToBackend = async (updatedLimits, updatedAllowedTimes, setDialogOpen, setDialogContent) => {
+  const saveConfigToBackend = async (updatedLimits, updatedAllowedTimes) => {
     try {
       const token = localStorage.getItem("token");
       const configData = {
@@ -178,13 +187,11 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
           return acc;
         }, {}),
       };
-      console.log("Dữ liệu gửi đi:", configData);
       await axios.put(`/api/devices/${deviceId}/update-time-limit-config`, configData.time_limit_daily, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("Cấu hình đã được lưu lên backend thành công:", configData);
       setDialogContent({
         title: "Thành công",
         message: "Cấu hình đã được lưu thành công!",
@@ -204,10 +211,9 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
     const totalHours = dailyLimit.hours + dailyLimit.minutes / 60;
     const updatedLimits = { ...weeklyLimits, [selectedDay]: totalHours };
     const updatedAllowedTimes = { ...allowedTimes, [selectedDay]: tempAllowedTimes };
-    console.log("Cập nhật:", { selectedDay, totalHours, tempAllowedTimes });
     setWeeklyLimits(updatedLimits);
     setAllowedTimes(updatedAllowedTimes);
-    saveConfigToBackend(updatedLimits, updatedAllowedTimes, setDialogOpen, setDialogContent);
+    saveConfigToBackend(updatedLimits, updatedAllowedTimes);
     setSelectedDay(null);
     setShowWeeklySettings(false);
   };
@@ -221,13 +227,16 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
     };
 
     if (selectedRange === "today") {
+      const filteredData = fetchedUsageData.filter((data) =>
+        isSameDay(new Date(data.date), selectedDate)
+      );
       return {
         labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
         datasets: [
           {
             label: "Phút sử dụng",
             data: Array.from({ length: 24 }, (_, i) =>
-              fetchedUsageData
+              filteredData
                 .filter((data) => data.hour === i)
                 .reduce((sum, data) => sum + data.usage_minutes, 0)
             ),
@@ -249,7 +258,7 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
       const dateLabels = Array.from({ length: days }, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
+        return format(date, "dd/MM");
       }).reverse();
 
       return {
@@ -260,10 +269,7 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
             data: dateLabels.map((date) =>
               fetchedUsageData
                 .filter((data) => {
-                  const dataDate = new Date(data.date).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                  });
+                  const dataDate = format(new Date(data.date), "dd/MM");
                   return dataDate === date;
                 })
                 .reduce((sum, data) => sum + data.usage_minutes / 60, 0)
@@ -286,7 +292,7 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
 
   const calculateSummary = () => {
     const filteredData = selectedRange === "today"
-      ? fetchedUsageData
+      ? fetchedUsageData.filter((data) => isSameDay(new Date(data.date), selectedDate))
       : fetchedUsageData.filter((data) => {
           const dataDate = new Date(data.date);
           const rangeStart = new Date(new Date().setDate(new Date().getDate() - (selectedRange === "7days" ? 6 : selectedRange === "15days" ? 14 : 29)));
@@ -311,10 +317,48 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
       {/* Range Selector with Tabs */}
       <Tabs value={selectedRange} onValueChange={handleRangeChange} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="today">Hôm nay</TabsTrigger>
-          <TabsTrigger value="7days">7 ngày</TabsTrigger>
-          <TabsTrigger value="15days">15 ngày</TabsTrigger>
-          <TabsTrigger value="30days">30 ngày</TabsTrigger>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={selectedRange === "today" ? "default" : "ghost"}
+                className={`w-full justify-center ${
+                  selectedRange === "today" ? "bg-black text-white hover:bg-black/90" : ""
+                }`}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {format(selectedDate, "PPP")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onDayClick={(date) => {
+                  setSelectedDate(date);
+                  setSelectedRange("today");
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          <TabsTrigger
+            value="7days"
+            className="data-[state=active]:bg-black data-[state=active]:text-white"
+          >
+            7 ngày
+          </TabsTrigger>
+          <TabsTrigger
+            value="15days"
+            className="data-[state=active]:bg-black data-[state=active]:text-white"
+          >
+            15 ngày
+          </TabsTrigger>
+          <TabsTrigger
+            value="30days"
+            className="data-[state=active]:bg-black data-[state=active]:text-white"
+          >
+            30 ngày
+          </TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -329,7 +373,7 @@ export default function PowerUsageTab({ screenTimeLimit, usageData, onUpdate, de
             <div className="w-40 h-40 flex items-center justify-center rounded-full border-4 border-primary">
               <span className="text-lg font-semibold text-center">
                 {selectedRange === "today"
-                  ? "Hôm nay"
+                  ? format(selectedDate, "PPP")
                   : selectedRange === "7days"
                   ? "7 ngày qua"
                   : selectedRange === "15days"

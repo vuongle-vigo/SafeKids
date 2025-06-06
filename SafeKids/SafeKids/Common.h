@@ -2,6 +2,8 @@
 #include <string>
 #include <iostream>
 
+#define LOG_FILE L"SafeKids.log"
+
 #ifdef _DEBUG
 #define PRINT_API_ERR(API_NAME) \
 	std::cout << API_NAME << ": " << GetLastError() << std::endl;
@@ -31,3 +33,5 @@ std::string RemoveQuotes(const std::string& input);
 std::wstring ToLowercaseW(const std::wstring& input);
 std::string ToLowercase(const std::string& input);
 std::string RemoveTrailingSplash(const std::string& input);
+void LogToFile(const std::string& message, const std::wstring& filePath = LOG_FILE);
+bool StartProcessInUserSession(const std::wstring& applicationPath);

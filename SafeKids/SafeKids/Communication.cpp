@@ -39,7 +39,7 @@ BOOL SendMessageToDriver(MESSAGE_TYPE Type, LPCWSTR FilePath) {
 
 BOOL InitSelfProtectDriver() {
 	std::wstring wsCurrentDir = GetCurrentDir();
-	std::wstring dbPath = wsCurrentDir + SQLITE_DB;
+	std::wstring dbPath = wsCurrentDir + L"\\"+ SQLITE_DB;
     std::wstring currentPath = GetCurrentProcessPath();
 
 	if (!SendMessageToDriver(MESSAGE_ADD_PROTECTED_FILE, dbPath.c_str())) {

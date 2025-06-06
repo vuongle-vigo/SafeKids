@@ -32,8 +32,12 @@ export default function Dashboard() {
           navigate("/login");
           return;
         }
+        const response = await axiosInstance.get("/api/devices", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
 
-        const response = await axiosInstance.get("/api/devices");
         setDevices(response.data);
       } catch (error) {
         console.error("Failed to fetch devices:", error);

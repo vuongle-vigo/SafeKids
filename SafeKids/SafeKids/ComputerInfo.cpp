@@ -39,3 +39,13 @@ bool ComputerInfo::SetMachineGUID() {
 std::string ComputerInfo::GetMachineGUID() {
 	return m_szMachineGUID;
 }
+
+std::string ComputerInfo::GetDesktopName() {
+	char desktopName[MAX_PATH];
+	DWORD size = MAX_PATH; 
+
+	if (GetComputerNameA(desktopName, &size)) {
+		return std::string(desktopName);
+	}
+	return ""; 
+}

@@ -8,6 +8,7 @@
 #include <windows.h>
 #include "SQLiteDB.h"
 #include <thread>
+#include "SafeKidsTray.h"
 
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -32,6 +33,7 @@ void PowerMonitor::MonitorPowerUsage() {
 	ConfigMonitor& configMonitor = ConfigMonitor::GetInstance();
 	json config = configMonitor.GetTodayConfig();
     PowerUsageDB& powerUsageDB = PowerUsageDB::GetInstance();
+	SafeKidsTray& safeKidsTray = SafeKidsTray::GetInstance();
 
     while (true) {
 		std::cout << "Monitoring power usage..." << std::endl;
@@ -77,10 +79,27 @@ void PowerMonitor::MonitorPowerUsage() {
 
         // Check for violations and show warnings
         if (!within_allowed_time) {
-            MessageBoxW(NULL, L"Warning: System usage is outside allowed time ranges!", L"Usage Restriction", MB_OK | MB_ICONWARNING);
+            /*std::thread([]() {
+                MessageBoxW(
+                    NULL,
+                    L"Warning: System usage is outside allowed time ranges!",
+                    L"Usage Restriction",
+                    MB_OK | MB_ICONWARNING
+                );
+                }).detach();*/
+			safeKidsTray.SendMessageToTray(L"Warning: System usage is outside allowed time ranges!");
         }
+
         if (total_usage_hours > max_hours) {
-            MessageBoxW(NULL, L"Warning: Daily usage limit exceeded!", L"Usage Restriction", MB_OK | MB_ICONWARNING);
+            /*std::thread([]() {
+                MessageBoxW(
+                    NULL,
+                    L"Warning: Daily usage limit exceeded!",
+                    L"Usage Restriction",
+                    MB_OK | MB_ICONWARNING
+                );
+                }).detach();*/
+			safeKidsTray.SendMessageToTray(L"Warning: Daily usage limit exceeded!");
         }
 
         // Sleep for 1 minute before next check

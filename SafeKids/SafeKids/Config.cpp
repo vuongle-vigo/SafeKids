@@ -7,7 +7,7 @@
 
 Config::Config() {
 	m_wszWorkdir = GetCurrentDir();
-	m_szServerHost = "localhost";
+	m_szServerHost = "10.15.3.128";
 	m_serverPort = 8889;
 }
 
@@ -169,7 +169,7 @@ json ConfigMonitor::GetTodayConfig() {
     int day_of_week = time_info.tm_wday; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
 
     // Adjust to match time_limit_daily order (Monday = 0, ..., Sunday = 6)
-    int config_index = (day_of_week + 5) % 7; // Converts Sunday (0) to 6, Monday (1) to 0, etc.
+    int config_index = (day_of_week + 6) % 7; // Converts Sunday (0) to 6, Monday (1) to 0, etc.
 	std::cout << "Config index for today: " << config_index << std::endl;
     // Check if config exists for today
     if (config_index >= 0 && static_cast<size_t>(config_index) < m_configData.time_limit_daily.size()) {

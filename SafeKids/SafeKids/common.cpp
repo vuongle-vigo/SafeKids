@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <windows.h>
 #include <algorithm>
+#include <ctime>
+#include <fstream>
 
 std::string GetCurrentDate() {
     // Get current time
@@ -156,4 +158,41 @@ std::string RemoveTrailingSplash(const std::string& input) {
 		return input.substr(0, input.length() - 1);
 	}
 	return input;
+}
+
+void LogToFile(const std::string& message, const std::wstring& filePath) {
+	std::wstring logDir = GetCurrentDir() + L"\\" + LOG_FILE;
+	std::ofstream logFile(filePath, std::ios_base::app);
+	if (logFile.is_open()) {
+		logFile << GetCurrentDate() << " " << GetCurrentTimeHour() << ": " << message << std::endl;
+		logFile.close();
+	}
+}
+
+#include <wtsapi32.h>
+#pragma comment(lib, "Wtsapi32.lib")
+bool StartProcessInUserSession(const std::wstring& applicationPath) {
+	DWORD sessionId = WTSGetActiveConsoleSessionId();
+	if (sessionId == 0xFFFFFFFF) return false;
+
+	HANDLE hToken;
+	if (!WTSQueryUserToken(sessionId, &hToken)) {
+		return false;
+	}
+
+	STARTUPINFOW si = { sizeof(si) };
+	PROCESS_INFORMATION pi;
+	si.lpDesktop = (LPWSTR)L"WinSta0\\Default";
+
+	BOOL success = CreateProcessAsUserW(
+		hToken, applicationPath.c_str(), NULL, NULL, NULL, FALSE,
+		NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi
+	);
+
+	CloseHandle(hToken);
+	if (success) {
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+	}
+	return success;
 }

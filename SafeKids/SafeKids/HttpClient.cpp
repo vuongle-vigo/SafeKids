@@ -37,7 +37,9 @@ bool HttpClient::SendRequestGetToken(LPCSTR pszUserName, LPCSTR pszPassword)
 
 	json jsBody;
 	jsBody["deviceId"] = comInfo.GetMachineGUID();
-	jsBody["deviceName"] = "Desktop";
+	jsBody["deviceName"] = comInfo.GetDesktopName();
+	std::cout << "Device ID: " << jsBody["deviceId"] << std::endl;
+	std::cout << "Device Name: " << jsBody["deviceName"] << std::endl;
 	std::string szBody = jsBody.dump();
 
 	auto response = client.Post("/api/auth/deviceLogin", szBody, "application/json");

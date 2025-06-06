@@ -1,9 +1,12 @@
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// Lấy URL gốc của API từ biến môi trường
+const VITE_API_URL = import.meta.env.VITE_API_URL || "http://localhost:8889";
+
 // Tạo một instance axios mới
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8889',  // URL gốc của API
+  baseURL: VITE_API_URL,  // URL gốc của API
   timeout: 10000,  // Timeout nếu yêu cầu mất quá lâu
 });
 

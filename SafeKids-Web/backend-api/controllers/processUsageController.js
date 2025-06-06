@@ -1,6 +1,7 @@
 const processUsageModel = require('../models/processUsageModel');
 
 function addProcessUsage(req, res) {
+    console.log("Received process usages:", req.body);
     const processUsages = Array.isArray(req.body) ? req.body : [req.body]; // Đảm bảo req.body là mảng
     const deviceId = req.device.device_id;
     const results = [];

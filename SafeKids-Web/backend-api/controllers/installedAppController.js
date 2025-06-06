@@ -72,7 +72,6 @@ function addInstalledApps(req, res) {
                             errors
                         });
                     }
-                    console.log("All applications added successfully");
                     res.status(201).json({
                         message: "All applications added successfully",
                         results

@@ -16,6 +16,9 @@ const { initWebSocketServer } = require('./services/socketService');
 
 var app = express();
 
+const host = process.env.HOST || 'localhost';
+const port = process.env.PORT || '8889';
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -23,7 +26,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors({
-    origin: 'http://localhost:5173',  
+    origin: `http://${host}:5173`,  
     methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],  
     allowedHeaders: ['Authorization', 'Content-Type'],  
   }));

@@ -2,13 +2,16 @@
 #include <string>
 #include "sqlite3/sqlite3.h"
 #include "nlohmann/json.hpp"
-#define SQLITE_DB_PATH "C:\\Users\\levuong\\Documents\\GitHub\\SafeKids\\SafeKids\\sqlite_db\\safekids.db"
+#include "Common.h"
+
+//#define SQLITE_DB_PATH "C:\\Users\\levuong\\Documents\\GitHub\\SafeKids\\SafeKids\\sqlite_db\\safekids.db"
+#define SQLITE_DB_PATH L"sqlite_db\\safekids.db"
 
 using json = nlohmann::json;
 
 class SQLiteDB {
 public:
-    SQLiteDB(const std::string& dbName);
+    SQLiteDB();
     ~SQLiteDB();
     static SQLiteDB& GetInstance();
     bool execute(const std::string& query);
@@ -16,6 +19,7 @@ public:
 
 private:
     sqlite3* db;
+    std::string dbPath = WstringToString(GetCurrentDir() + L"\\" + SQLITE_DB_PATH);
 };
 
 class SQLiteStmt {
@@ -81,6 +85,7 @@ public:
     bool add(const std::string& app_name, const std::string& version, const std::string& publisher, const std::string& install_location, const std::string& exe_path, const std::string& uninstall_string, const std::string& quiet_uninstall_string);
     bool update_status(const std::string& app_name, const std::string& status);
 	json query_apps();
+	bool delete_all();
 private:
 	SQLiteDB& db;
 };

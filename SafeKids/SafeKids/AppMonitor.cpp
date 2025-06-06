@@ -160,6 +160,7 @@ void AppMonitor::DisplayApplications() {
 
 void AppMonitor::AddApplicationsToDb() {
 	AppDB& appDB = AppDB::GetInstance();
+    appDB.delete_all();
     for (const auto& app : m_vAppInfo) {
 		appDB.add(WstringToString(app.m_sAppName), WstringToString(app.m_sVersion), WstringToString(app.m_sPublisher),
             RemoveTrailingSplash(WstringToString(app.m_sInstallLocation)), WstringToString(app.m_sExePath),

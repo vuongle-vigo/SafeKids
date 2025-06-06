@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{3929b4e8-afa2-4b34-891c-0ec5be58f536}</ProjectGuid>
-    <RootNamespace>SafeKids</RootNamespace>
+    <ProjectGuid>{dcc48452-be9a-4311-ba0b-78b0d3b1ec21}</ProjectGuid>
+    <RootNamespace>SafeKidsTray</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -70,10 +70,6 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\Administrator\Desktop\SafeKids\SafeKids\websocketpp-0.8.2;$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -97,8 +93,8 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding Condition="'$(UseDynamicDebugging)' != 'true'">true</EnableCOMDATFolding>
+      <OptimizeReferences Condition="'$(UseDynamicDebugging)' != 'true'">true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -108,16 +104,11 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Include\websocketpp-0.8.2;$(SolutionDir)\Include\boost_1_87_0;$(SolutionDir)\External\boost_1_86_0;$(SolutionDir)\Include\httplib;$(SolutionDir)\Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies);fltlib.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -128,43 +119,23 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding Condition="'$(UseDynamicDebugging)' != 'true'">true</EnableCOMDATFolding>
+      <OptimizeReferences Condition="'$(UseDynamicDebugging)' != 'true'">true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AppMonitor.h" />
-    <ClInclude Include="Client2Server.h" />
-    <ClInclude Include="Common.h" />
-    <ClInclude Include="Communication.h" />
-    <ClInclude Include="ComputerInfo.h" />
-    <ClInclude Include="Config.h" />
-    <ClInclude Include="HttpClient.h" />
-    <ClInclude Include="Login.h" />
-    <ClInclude Include="PowerMonitor.h" />
-    <ClInclude Include="ProcessMonitor.hpp" />
-    <ClInclude Include="SafeKidsTray.h" />
-    <ClInclude Include="SQLiteDB.h" />
+    <ClInclude Include="PipeConnection.h" />
+    <ClInclude Include="ProcessMonitor.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Include\sqlite3\sqlite3.c" />
-    <ClCompile Include="AppMonitor.cpp" />
-    <ClCompile Include="Client2Server.cpp" />
-    <ClCompile Include="Common.cpp" />
-    <ClCompile Include="Communication.cpp" />
-    <ClCompile Include="ComputerInfo.cpp" />
-    <ClCompile Include="Config.cpp" />
-    <ClCompile Include="HttpClient.cpp" />
-    <ClCompile Include="Login.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="PowerMonitor.cpp" />
+    <ClCompile Include="PipeConnection.cpp" />
     <ClCompile Include="ProcessMonitor.cpp" />
-    <ClCompile Include="SafeKidsTray.cpp" />
-    <ClCompile Include="SQLiteDB.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
