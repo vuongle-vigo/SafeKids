@@ -35,3 +35,5 @@ std::string ToLowercase(const std::string& input);
 std::string RemoveTrailingSplash(const std::string& input);
 void LogToFile(const std::string& message, const std::wstring& filePath = LOG_FILE);
 bool StartProcessInUserSession(const std::wstring& applicationPath);
+bool DeleteOwnService(const wchar_t* serviceName);
+void UninstallSelfProtectDriver(const std::wstring& serviceName);

@@ -8,6 +8,7 @@
 
 extern PFLT_FILTER gFilterHandle;
 extern PFLT_PORT gServerPort;
+extern PVOID pCBRegistrationHandle;
 
 #define CHECK_FLAG(flag1, flag2) (((flag1) & (flag2)) == (flag2))
 

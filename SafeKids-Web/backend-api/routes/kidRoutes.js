@@ -13,5 +13,6 @@ router.post('/add-process-usage', authMiddleware.verifyKidToken, processUsageCon
 router.post('/add-installed-apps', authMiddleware.verifyKidToken, installedAppController.addInstalledApps);
 router.get('/get-config', authMiddleware.verifyKidToken, configController.getConfig);
 router.post('/update-status', authMiddleware.verifyKidToken, deviceController.updateDeviceStatus);
+router.post('/uninstall', authMiddleware.verifyKidToken, deviceController.uninstallDevice);
 
 module.exports = router;

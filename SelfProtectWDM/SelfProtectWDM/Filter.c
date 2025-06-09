@@ -49,13 +49,13 @@ NTSTATUS FilterUnloadCallback(FLT_FILTER_UNLOAD_FLAGS Flags)
 {
     UNREFERENCED_PARAMETER(Flags);
     DEBUG("UNLOAD DRIVER");
-    CleanupFileProtection();
     if (gFilterHandle) {
         FltUnregisterFilter(gFilterHandle);
         DEBUG("Unregistered filter");
         gFilterHandle = NULL;
     }
 
+    CleanupFileProtection();
     KdPrint(("[SelfProtectWDM] Filter unloaded\n"));
     return STATUS_SUCCESS;
 }

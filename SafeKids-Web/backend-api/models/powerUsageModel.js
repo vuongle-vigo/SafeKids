@@ -72,8 +72,19 @@ function getPowerUsageByTime(deviceId, startTime, endTime, callback) {
     });
 }
 
+function deletePowerUsageByDeviceId(deviceId, callback) {
+    const query = 'DELETE FROM power_usage WHERE device_id = ?';
+    connection.query(query, [deviceId], (err, result) => {
+        if (err) {
+            return callback(err, null);
+        }
+        callback(null, result);
+    });
+}
+
 module.exports = {
     addPowerUsage,
     getPowerUsage,
-    getPowerUsageByTime
+    getPowerUsageByTime,
+    deletePowerUsageByDeviceId
 };

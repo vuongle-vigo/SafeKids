@@ -30,10 +30,17 @@ export default function Login() {
           },
         })
         .then(() => {
-          navigate("/devices");
+          // Kiểm tra role từ token hoặc API nếu cần
+          const role = localStorage.getItem("role"); // Lấy role từ localStorage
+          if (role === "admin") {
+            navigate("/admin");
+          } else {
+            navigate("/devices");
+          }
         })
         .catch(() => {
           localStorage.removeItem("token");
+          localStorage.removeItem("role"); // Xóa role nếu token không hợp lệ
           navigate("/login");
         });
     }
@@ -52,8 +59,16 @@ export default function Login() {
         },
       });
 
+      // Lưu token và role vào localStorage
       localStorage.setItem("token", response.data.token);
-      navigate("/devices");
+      localStorage.setItem("role", response.data.role); // Lưu role
+
+      // Điều hướng dựa trên role
+      if (response.data.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/devices");
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Đã xảy ra lỗi trong quá trình đăng nhập");
     }

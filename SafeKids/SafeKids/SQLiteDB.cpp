@@ -611,7 +611,7 @@ ConfigMonitorDB& ConfigMonitorDB::GetInstance() {
 }
 
 bool ConfigMonitorDB::add(const std::string& time_limit_daily, std::string& config_websites,
-    std::string& config_apps, std::string status) {
+    std::string& config_apps, std::string command, std::string status) {
 
     // Compute the current update timestamp
     std::string currentDate = GetCurrentDate();
@@ -631,7 +631,7 @@ bool ConfigMonitorDB::add(const std::string& time_limit_daily, std::string& conf
     sqlite3_finalize(deleteStmt);
 
     // Insert the new configuration record
-    const char* insertSql = "INSERT INTO configs (time_limit_daily, config_websites, config_apps, status, updated_at) "
+    const char* insertSql = "INSERT INTO configs (time_limit_daily, config_websites, config_apps, command, status, updated_at) "
         "VALUES (?, ?, ?, ?, ?);";
     sqlite3_stmt* insertStmt;
     if (sqlite3_prepare_v2(db.getDB(), insertSql, -1, &insertStmt, nullptr) != SQLITE_OK) {
@@ -641,8 +641,9 @@ bool ConfigMonitorDB::add(const std::string& time_limit_daily, std::string& conf
     sqlite3_bind_text(insertStmt, 1, time_limit_daily.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(insertStmt, 2, config_websites.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(insertStmt, 3, config_apps.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(insertStmt, 4, status.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_text(insertStmt, 5, updatedAt.c_str(), -1, SQLITE_TRANSIENT);
+	sqlite3_bind_text(insertStmt, 4, command.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(insertStmt, 5, status.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(insertStmt, 6, updatedAt.c_str(), -1, SQLITE_TRANSIENT);
 
     bool success = (sqlite3_step(insertStmt) == SQLITE_DONE);
     sqlite3_finalize(insertStmt);
@@ -655,7 +656,7 @@ json ConfigMonitorDB::query_config() {
     std::string currentDate = GetCurrentDate();
     std::string currentTime = GetCurrentTimeHour();
 
-    const char* sql = "SELECT id, time_limit_daily, config_websites, config_apps, updated_at, status FROM configs;";
+    const char* sql = "SELECT id, time_limit_daily, config_websites, config_apps, updated_at, command, status FROM configs;";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db.getDB(), sql, -1, &stmt, nullptr) != SQLITE_OK) {
         return result; // Return empty JSON if query fails
@@ -667,7 +668,8 @@ json ConfigMonitorDB::query_config() {
         const char* config_websites = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
         const char* config_apps = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
         const char* updated_at = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
-        const char* status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+		const char* command = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+        const char* status = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
 
         // Extract date and hour from updated_at (format: YYYY-MM-DD HH:MM:SS)
         std::string updated_at_str = updated_at ? updated_at : "";

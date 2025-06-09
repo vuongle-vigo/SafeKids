@@ -3,6 +3,8 @@ import Login from "./pages/Login";
 import Devices from "./pages/Devices";
 import Layout from "./pages/Layout"; // Import Layout
 import DeviceManagement from "./pages/DeviceManagement";
+import Admin from "./pages/Admin";
+import UserDevices from "./pages/UserDevices";
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
           <Route path="devices" element={<Devices />} />
           <Route path="device/:deviceId/manage" element={<DeviceManagement />} />
           <Route path="settings" element={<div>Settings Page</div>} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/user-devices/:userId" element={<UserDevices />} />
         </Route>
 
         {/* Route mặc định - Redirect đến login */}

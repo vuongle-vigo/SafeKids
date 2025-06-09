@@ -39,16 +39,19 @@ BOOL SendMessageToDriver(MESSAGE_TYPE Type, LPCWSTR FilePath) {
 
 BOOL InitSelfProtectDriver() {
 	std::wstring wsCurrentDir = GetCurrentDir();
-	std::wstring dbPath = wsCurrentDir + L"\\"+ SQLITE_DB;
-    std::wstring currentPath = GetCurrentProcessPath();
+	std::wstring dbPath = wsCurrentDir + SQLITE_DB;
+	std::wstring dbPathNt = DosPathToNtPath(dbPath);
+    std::wstring currentPath = DosPathToNtPath(GetCurrentProcessPath());
 
-	if (!SendMessageToDriver(MESSAGE_ADD_PROTECTED_FILE, dbPath.c_str())) {
-		std::wcerr << L"Failed to send message to driver for database path: " << dbPath << std::endl;
+	if (!SendMessageToDriver(MESSAGE_ADD_PROTECTED_FILE, dbPathNt.c_str())) {
+		//std::wcerr << L"Failed to send message to driver for database path: " << dbPath << std::endl;
+		LogToFile("Failed to send message to driver for database path: " + WstringToString(dbPathNt));
 		return FALSE;
 	}
 
 	if (!SendMessageToDriver(MESSAGE_ADD_PROTECTED_PROCESS, currentPath.c_str())) {
-		std::wcerr << L"Failed to send message to driver for current process path: " << currentPath << std::endl;
+		LogToFile("Failed to send message to driver for current process path: " + WstringToString(currentPath));
+		//std::wcerr << L"Failed to send message to driver for current process path: " << currentPath << std::endl;
 		return FALSE;
 	}
 }

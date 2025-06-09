@@ -59,9 +59,57 @@ function updateAppConfigDevice(req, res) {
         res.status(200).json({ message: 'App config updated successfully', result });
     });
 }
+
+function updateCommandConfigDevice(req, res) {
+    const { deviceId } = req.params;
+    const configData = req.body["command"];
+    console.log("Updating command config for device:", deviceId, "with data:", configData);
+    if (!deviceId || !configData) {
+        return res.status(400).json({ message: 'Missing deviceId or config data' });
+    }
+
+    configModel.updateCommandConfig(deviceId, configData, (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error updating command config for device' });
+        }
+        res.status(200).json({ message: 'Command config updated successfully', result });
+    });
+}
+
+function getCommandConfigDevice(req, res) {
+    const { deviceId } = req.params;
+    if (!deviceId) {
+        return res.status(400).json({ message: 'Missing or invalid deviceId' });
+    }
+
+    configModel.getCommandConfigDevice(deviceId, (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error fetching command config for device' });
+        }
+        res.status(200).json(result);
+    });
+}
+
+function deleteConfigByDeviceId(req, res) {
+    const { deviceId } = req.params;
+    if (!deviceId) {
+        return res.status(400).json({ message: 'Missing or invalid deviceId' });
+    }
+
+    configModel.deleteConfigByDeviceId(deviceId, (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error deleting config for device' });
+        }
+        res.status(200).json({ message: 'Config deleted successfully', result });
+    });
+}
+
 module.exports = {
     getConfig,
     getConfigDevice,
     updateTimelimitConfigDevice,
-    updateAppConfigDevice
+    updateAppConfigDevice,
+    updateCommandConfigDevice,
+    getCommandConfigDevice,
+    deleteConfigByDeviceId
 };

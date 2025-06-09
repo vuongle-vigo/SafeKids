@@ -42,6 +42,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
     DriverObject->MajorFunction[IRP_MJ_CREATE] = HandleFileAccess; // For compatibility
     DriverObject->MajorFunction[IRP_MJ_CLOSE] = HandleCreateClose;
     DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = HandleDeviceControl;
+    DriverObject->DriverUnload = DriverUnload;
 
     // Initialize file protection (minifilter)
     status = InitializeFilter(DriverObject);
@@ -66,19 +67,18 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 }
 
 //// DriverUnload: Cleanup routine
-//VOID DriverUnload(PDRIVER_OBJECT DriverObject)
-//{
-//    UNICODE_STRING symbolicLinkName;
-//
-//    // Cleanup file protection
-//    CleanupFileProtection();
-//
-//    RtlInitUnicodeString(&symbolicLinkName, SYMBOLIC_LINK_NAME);
-//    IoDeleteSymbolicLink(&symbolicLinkName);
-//    IoDeleteDevice(DriverObject->DeviceObject);
-//
-//    KdPrint(("[SelfProtectWDM] Driver unloaded\n"));
-//}
+VOID DriverUnload(PDRIVER_OBJECT DriverObject)
+{
+    UNICODE_STRING symbolicLinkName;
+
+    UnregisterProcessProtection();
+
+    RtlInitUnicodeString(&symbolicLinkName, SYMBOLIC_LINK_NAME);
+    IoDeleteSymbolicLink(&symbolicLinkName);
+    IoDeleteDevice(DriverObject->DeviceObject);
+
+    KdPrint(("[SelfProtectWDM] Driver unloaded\n"));
+}
 
 // HandleCreateClose: Process IRP_MJ_CLOSE
 NTSTATUS HandleCreateClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)

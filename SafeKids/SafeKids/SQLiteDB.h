@@ -95,7 +95,7 @@ public:
     ConfigMonitorDB();
     ~ConfigMonitorDB();
     static ConfigMonitorDB& GetInstance();
-    bool add(const std::string& time_limit_daily, std::string& config_websites, std::string& config_apps, std::string status);
+    bool add(const std::string& time_limit_daily, std::string& config_websites, std::string& config_apps, std::string command, std::string status);
     json query_config();
 private:
     SQLiteDB& db;

@@ -53,7 +53,19 @@ function getProcessUsageByDeviceAndDate(req, res) {
     });
 }
 
+function deleteProcessUsageByDeviceId(req, res) {
+    const { deviceId } = req.params;
+    processUsageModel.deleteProcessUsageByDeviceId(deviceId, (err, result) => {
+        if (err) {
+            console.error("Error deleting process usage:", err);
+            return res.status(500).json({ message: 'Error deleting process usage' });
+        }
+        res.status(200).json({ message: 'Process usage deleted successfully', result });
+    });
+}
+
 module.exports = {
     addProcessUsage,
-    getProcessUsageByDeviceAndDate
+    getProcessUsageByDeviceAndDate,
+    deleteProcessUsageByDeviceId
 };

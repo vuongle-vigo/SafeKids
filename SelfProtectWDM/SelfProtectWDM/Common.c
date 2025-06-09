@@ -2,6 +2,7 @@
 
 PFLT_FILTER gFilterHandle = NULL;
 PFLT_PORT gServerPort = NULL;
+PVOID pCBRegistrationHandle = NULL;
 
 PWCHAR CopyUnicodeString(
     _In_ PCUNICODE_STRING Source

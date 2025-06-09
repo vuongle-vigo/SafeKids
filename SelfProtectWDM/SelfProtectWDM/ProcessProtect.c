@@ -53,6 +53,30 @@ VOID RemoveProtectedProcess(_In_ PCUNICODE_STRING ProcessPath) {
 	KeReleaseSpinLock(&ProtectedProcessesLock, irql);
 }
 
+VOID CleanupProcessProtection(VOID) {
+	KIRQL irql;
+	PLIST_ENTRY entry;
+	// Acquire the spinlock to protect the list
+	KeAcquireSpinLock(&ProtectedProcessesLock, &irql);
+	// Iterate through the list until it's empty
+	while (!IsListEmpty(&ProtectedProcessesList)) {
+		// Get the first entry
+		entry = RemoveHeadList(&ProtectedProcessesList);
+		PPROTECTED_PROCESS process = CONTAINING_RECORD(entry, PROTECTED_PROCESS, ListEntry);
+		// Free the process path buffer if it exists
+		if (process->ProcessPath.Buffer) {
+			FREE_POOL_WITH_TAG(process->ProcessPath.Buffer, STRG_TAG);
+			process->ProcessPath.Buffer = NULL; // Optional: Clear pointer for safety
+		}
+		// Free the PROTECTED_PROCESS structure
+		FREE_POOL_WITH_TAG(process, STCT_TAG);
+		DEBUG("Freed protected process during cleanup\n");
+	}
+	// Release the spinlock
+	KeReleaseSpinLock(&ProtectedProcessesLock, irql);
+	DEBUG("Process protection cleaned up\n");
+}
+
 BOOLEAN IsProtectedProcess(_In_ PCUNICODE_STRING ProcessPath) {
 	KIRQL irql;
 	KeAcquireSpinLock(&ProtectedProcessesLock, &irql);
@@ -82,7 +106,7 @@ NTSTATUS InitializeProcessProtection() {
 	OB_OPERATION_REGISTRATION CBOperationRegistrations[1] = { 0 };
 	UNICODE_STRING CBAltitude = { 0 };
 	TD_CALLBACK_REGISTRATION CBCallbackRegistration = { 0 };
-	PVOID pCBRegistrationHandle = NULL;
+	pCBRegistrationHandle = NULL;
 
 	CBOperationRegistrations[0].ObjectType = PsProcessType;
 	CBOperationRegistrations[0].Operations |= OB_OPERATION_HANDLE_CREATE;
@@ -186,6 +210,7 @@ OB_PREOP_CALLBACK_STATUS PreObjectCreateCallback(
 	return OB_PREOP_SUCCESS;
 }
 
+
 NTSTATUS GetImagePathFromProcessId(
 	HANDLE ProcessId,
 	OUT PUNICODE_STRING ImagePath
@@ -282,4 +307,14 @@ OB_PREOP_CALLBACK_STATUS PreProcessHandleOperation(
 
 	FREE_POOL_WITH_TAG(ProcessPath.Buffer, STRG_TAG);
 	return OB_PREOP_SUCCESS;
+}
+
+VOID UnregisterProcessProtection() {
+	if (pCBRegistrationHandle != NULL) {
+		ObUnRegisterCallbacks(pCBRegistrationHandle);
+		pCBRegistrationHandle = NULL;
+		DEBUG("ObCallbacks unregistered successfully\n");
+	}
+
+	CleanupProcessProtection();
 }

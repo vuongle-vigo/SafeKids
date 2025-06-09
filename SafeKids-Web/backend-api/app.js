@@ -12,6 +12,7 @@ const authRoutes = require('./routes/authRoutes')
 const deviceRoutes = require('./routes/deviceRoutes');
 const commandRoutes = require('./routes/commandRoutes');
 const kidRoutes = require('./routes/kidRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const { initWebSocketServer } = require('./services/socketService'); 
 
 var app = express();
@@ -36,6 +37,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/commands', commandRoutes);
 app.use('/api/kid', kidRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use(express.static(path.join(__dirname, '../frontend-safekids')));
 

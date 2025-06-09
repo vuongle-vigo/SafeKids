@@ -21,10 +21,11 @@ export default function Dashboard() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState(null);
   const [newDeviceName, setNewDeviceName] = useState("");
+  const [uninstallStatus, setUninstallStatus] = useState({}); // State để lưu trạng thái gỡ cài đặt
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchDevices = async () => {
+    const fetchDevicesAndCommands = async () => {
       setIsLoading(true);
       try {
         const token = localStorage.getItem("token");
@@ -32,21 +33,41 @@ export default function Dashboard() {
           navigate("/login");
           return;
         }
-        const response = await axiosInstance.get("/api/devices", {
+
+        // Lấy danh sách thiết bị
+        const deviceResponse = await axiosInstance.get("/api/devices", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setDevices(deviceResponse.data);
+
+        // Lấy danh sách lệnh cho tất cả thiết bị
+        const commandResponse = await axiosInstance.get("/api/devices/${deviceId}/get-command", {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
 
-        setDevices(response.data);
+        // Xử lý danh sách lệnh, bỏ JSON escaped trong command
+        console.log("Command Response:", commandResponse.data);
+        const statusMap = commandResponse.data.reduce((acc, cmd) => {
+          const commandValue = cmd.command.replace(/^"|"$/g, '').replace(/\\"/g, '"'); // Chuyển "\"uninstall\"" thành "uninstall"
+          if (commandValue === "uninstall") {
+            acc[cmd.device_id] = true;
+          }
+          return acc;
+        }, {});
+        setUninstallStatus(statusMap);
+
       } catch (error) {
-        console.error("Failed to fetch devices:", error);
+        console.error("Failed to fetch devices or commands:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchDevices();
+    fetchDevicesAndCommands();
   }, [navigate]);
 
   const isDeviceOnline = (device) => device.device_status === "online";
@@ -115,6 +136,67 @@ export default function Dashboard() {
       setDialogContent({
         title: "Lỗi",
         message: "Không thể xóa thiết bị. Vui lòng thử lại.",
+        action: null,
+      });
+      setDialogOpen(true);
+    }
+  };
+
+  const handleUninstallClick = (deviceId, isUninstalling) => {
+    if (isUninstalling) {
+      setDialogContent({
+        title: "Xác nhận hủy gỡ cài đặt",
+        message: "Bạn có chắc chắn muốn hủy gỡ cài đặt thiết bị này?",
+        action: () => cancelUninstall(deviceId),
+      });
+    } else {
+      setDialogContent({
+        title: "Xác nhận gỡ cài đặt",
+        message: "Bạn có chắc chắn muốn gỡ cài đặt thiết bị này?",
+        action: () => confirmUninstall(deviceId),
+      });
+    }
+    setDialogOpen(true);
+  };
+
+  const confirmUninstall = async (deviceId) => {
+    try {
+      await axiosInstance.put(`/api/devices/${deviceId}/uninstall`, {
+        command: "uninstall"
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setUninstallStatus((prev) => ({ ...prev, [deviceId]: true }));
+      setDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to uninstall device:", error);
+      setDialogContent({
+        title: "Lỗi",
+        message: "Không thể gỡ cài đặt thiết bị. Vui lòng thử lại.",
+        action: null,
+      });
+      setDialogOpen(true);
+    }
+  };
+
+  const cancelUninstall = async (deviceId) => {
+    try {
+      await axiosInstance.put(`/api/devices/${deviceId}/uninstall`, {
+        command: "installed"
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setUninstallStatus((prev) => ({ ...prev, [deviceId]: false }));
+      setDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to cancel uninstall:", error);
+      setDialogContent({
+        title: "Lỗi",
+        message: "Không thể hủy gỡ cài đặt. Vui lòng thử lại.",
         action: null,
       });
       setDialogOpen(true);
@@ -191,11 +273,7 @@ export default function Dashboard() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={isDeviceOnline(device) ? "default" : "secondary"}
-                      className={isDeviceOnline(device) ? "bg-green-500" : "bg-gray-500"}>
-                        {/* <Badge
-                variant={device.device_status ? "default" : "secondary"}
-                className={device.device_status ? "bg-green-500" : "bg-gray-500"}
-              ></Badge> */}
+                        className={isDeviceOnline(device) ? "bg-green-500" : "bg-gray-500"}>
                         {isDeviceOnline(device) ? "Online" : "Offline"}
                       </Badge>
                     </TableCell>
@@ -227,6 +305,22 @@ export default function Dashboard() {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>Xóa thiết bị</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUninstallClick(device.device_id, uninstallStatus[device.device_id])}
+                              >
+                                {uninstallStatus[device.device_id] ? "Hủy gỡ cài đặt" : "Gỡ cài đặt"}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {uninstallStatus[device.device_id] ? "Hủy gỡ cài đặt thiết bị" : "Gỡ cài đặt thiết bị"}
+                            </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                         <TooltipProvider>

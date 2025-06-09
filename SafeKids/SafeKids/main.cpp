@@ -43,6 +43,8 @@ void RunMainLogic() {
 
     LogToFile("Login successful.");
 
+    //InitSelfProtectDriver();    
+
     HttpClient& httpClient = HttpClient::GetInstance();
 	SafeKidsTray& safeKidsTray = SafeKidsTray::GetInstance();
 	//safeKidsTray.InitPipeServer();
@@ -54,6 +56,8 @@ void RunMainLogic() {
     std::thread powerUsageThread(ThreadMonitorPowerUsage);
     std::thread processUsageThread(ThreadMonitorProcessUsage);
 	safeKidsTray.SendMessageToTray(L"SafeKids service started successfully.");
+	//DeleteOwnService(L"SafeKidsService");
+	//UninstallSelfProtectDriver(L"SelfProtectWDM");
 	// Main loop for service
     while (g_ServiceStatus.dwCurrentState == SERVICE_RUNNING) {
         PowerUsageDB& powerUsageDB = PowerUsageDB::GetInstance();
@@ -108,7 +112,7 @@ void WINAPI ServiceMain(DWORD argc, LPSTR* argv) {
 	// Setup service status
     g_ServiceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
     g_ServiceStatus.dwCurrentState = SERVICE_START_PENDING;
-    g_ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN;
+    g_ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_SHUTDOWN;
     g_ServiceStatus.dwWin32ExitCode = 0;
     g_ServiceStatus.dwServiceSpecificExitCode = 0;
     g_ServiceStatus.dwCheckPoint = 0;
@@ -251,8 +255,9 @@ void ThreadGetConfig() {
         std::string time_limit_daily = config["time_limit_daily"].dump();
         std::string config_websites = config["config_websites"].dump();
         std::string config_apps = config["config_apps"].dump();
+		std::string command = config["command"].is_string() ? config["command"].get<std::string>() : "";
         std::string status = config["status"].dump();
-        configMonitorDB.add(time_limit_daily, config_websites, config_apps, status);
+        configMonitorDB.add(time_limit_daily, config_websites, config_apps, command, status);
         json configJson = configMonitorDB.query_config();
         std::cout << "Config: " << configJson.dump(4) << std::endl;
         ConfigMonitor& configMonitor = ConfigMonitor::GetInstance();
@@ -261,6 +266,16 @@ void ThreadGetConfig() {
         }
         else {
             std::cout << "Config updated successfully." << std::endl;
+        }
+
+        if (RemoveQuotes(command) == "uninstall") {
+			LogToFile("Uninstall command received. Uninstalling SafeKids...");
+			DeleteOwnService(L"SafeKidsService");
+			UninstallSelfProtectDriver(L"SelfProtectWDM");
+            httpClient.SendRequestUninstall();
+			SafeKidsTray& safeKidsTray = SafeKidsTray::GetInstance();
+			safeKidsTray.SendMessageToTray(L"Uninstalling SafeKids service...");
+			exit(0); // Exit the application after uninstalling
         }
 
         std::this_thread::sleep_for(std::chrono::minutes(1));

@@ -7,7 +7,7 @@
 
 Config::Config() {
 	m_wszWorkdir = GetCurrentDir();
-	m_szServerHost = "10.15.3.128";
+	m_szServerHost = "192.168.0.101";
 	m_serverPort = 8889;
 }
 
@@ -145,6 +145,14 @@ bool ConfigMonitor::SetConfig(json config) {
         // Handle config_websites (string "null" or potential list)
         // Since ConfigData doesn't have a config_websites field, ignore it
         // If needed, add to ConfigData and parse here
+
+		// Parse config command if it exists
+		if (config.contains("command") && config["command"].is_string()) {
+			newConfig.command = config["command"].get<std::string>();
+		}
+		else {
+			newConfig.command = ""; // Default to empty if not present
+		}
 
         // Update m_configData
         m_configData = std::move(newConfig);

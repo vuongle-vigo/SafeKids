@@ -47,6 +47,7 @@ public:
     struct ConfigData {
         std::vector<DailyLimit> time_limit_daily; // Daily limits for 7 days (Monday to Sunday)
         AppConfig config_apps;            // Blocked and uninstall apps
+        std::string command;
         std::string updated_at;           // Timestamp, e.g., "2025-06-04 01:19:00"
         std::string status;               // Status, e.g., "success"
     };

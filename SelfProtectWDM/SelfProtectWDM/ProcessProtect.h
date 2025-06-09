@@ -51,6 +51,7 @@ TD_CALLBACK_REGISTRATION, * PTD_CALLBACK_REGISTRATION;
 VOID InitializeProtectedProcessesList();
 NTSTATUS AddProtectedProcess(_In_ PCUNICODE_STRING ProcessPath);
 VOID RemoveProtectedProcess(_In_ PCUNICODE_STRING ProcessPath);
+VOID CleanupProcessProtection(VOID);    
 BOOLEAN IsProtectedProcess(_In_ PCUNICODE_STRING ProcessPath);
 
 //Init process protect
@@ -85,3 +86,5 @@ CBTdPreOperationCallback(
     _In_ PVOID RegistrationContext,
     _Inout_ POB_PRE_OPERATION_INFORMATION PreInfo
 );
+
+VOID UnregisterProcessProtection();

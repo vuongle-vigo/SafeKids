@@ -45,8 +45,19 @@ function getPowerUsageByTime(req, res) {
     });
 }
 
+function deletePowerUsageByDeviceId(req, res) {
+    const { deviceId } = req.params;
+    powerUsageModel.deletePowerUsageByDeviceId(deviceId, (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error deleting power usage' });
+        }
+        res.status(200).json({ message: 'Power usage deleted successfully' });
+    });
+}
+
 module.exports = {
     addPowerUsage,
     getPowerUsage,
-    getPowerUsageByTime
+    getPowerUsageByTime,
+    deletePowerUsageByDeviceId
 };

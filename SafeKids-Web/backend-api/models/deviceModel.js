@@ -60,27 +60,13 @@ function addDevice(deviceId, deviceName, userId, callback) {
 
 function getDeviceByUserId(userId, callback) {
     const selectQuery = 'SELECT * FROM devices WHERE user_id = ?';
-    const updateQuery = `
-        UPDATE devices 
-        SET device_status = 'offline' 
-        WHERE user_id = ? 
-          AND TIMESTAMPDIFF(MINUTE, last_activity, NOW()) >= 3
-          AND device_status = 'online'
-    `;
-
-    connection.query(updateQuery, [userId], (updateErr) => {
-        if (updateErr) {
-            return callback(updateErr, null);
-        }
-
-        connection.query(selectQuery, [userId], (selectErr, results) => {
+    connection.query(selectQuery, [userId], (selectErr, results) => {
             if (selectErr) {
                 return callback(selectErr, null);
             }
 
             callback(null, results);
         });
-    });
 }
 
 

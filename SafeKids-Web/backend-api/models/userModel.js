@@ -1,8 +1,8 @@
 const connection = require('../db');
 
-function registryUser(username, password, email, callback) {
-    const query = 'INSERT INTO users (username, password, email) VALUES (?, ?, ?)';
-    connection.query(query, [username, password, email], (err, result) => {
+function createUser(email, password, callback) {
+    const query = 'INSERT INTO users (email, password) VALUES (?, ?)';
+    connection.query(query, [email, password], (err, result) => {
         if (err) {
             return callback(err, null);
         }
@@ -21,7 +21,40 @@ function findUserByEmail(email, callback) {
     });
 }
 
+function getAllUsers(callback) {
+    const query = 'SELECT * FROM users';
+    connection.query(query, (err, result) => {
+        if (err) {
+            return callback(err, null);
+        }
+        callback(null, result);
+    });
+}
+
+function deleteUser(id, callback) {
+    const query = 'DELETE FROM users WHERE user_id = ?';
+    connection.query(query, [id], (err, result) => {
+        if (err) {
+            return callback(err, null);
+        }
+        callback(null, result);
+    });
+}
+
+function changePassword(userId, newPassword, callback) {
+    const query = 'UPDATE users SET password = ? WHERE user_id = ?';
+    connection.query(query, [newPassword, userId], (err, result) => {
+        if (err) {
+            return callback(err, null);
+        }
+        callback(null, result);
+    });
+}
+
 module.exports = {
-    registryUser,
+    createUser,
     findUserByEmail,
+    getAllUsers,
+    deleteUser, 
+    changePassword
 };

@@ -82,7 +82,19 @@ function addInstalledApps(req, res) {
     });
 }
 
+function deleteAppByDeviceId(req, res) {
+    const { deviceId } = req.params;
+    installedAppModel.deleteAppByDeviceId(deviceId, (err, result) => {
+        if (err) {
+            console.error('Error deleting apps for device:', err);
+            return res.status(500).json({ error: 'Failed to delete apps' });
+        }
+        res.status(200).json({ message: 'Apps deleted successfully', result });
+    });
+}
+
 module.exports = {
     getInstalledAppsByDevice,
-    addInstalledApps
+    addInstalledApps,
+    deleteAppByDeviceId
 };

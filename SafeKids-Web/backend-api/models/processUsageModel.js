@@ -44,7 +44,26 @@ function getProcessUsageByDeviceAndDate(deviceId, dateRecorded, callback) {
     });
 }
 
+function deleteProcessUsageByDeviceId(deviceId, callback) {
+    const query = 'DELETE FROM process_usage WHERE device_id = ?';
+    connection.query(query, [deviceId], (err, result) => {
+        if (err) {
+            return callback({
+                success: false,
+                message: 'Error deleting process usage.',
+                error: err
+            }, null);
+        }
+        callback(null, {
+            success: true,
+            message: 'Process usage deleted successfully.',
+            data: result
+        });
+    });
+}
+
 module.exports = {
     addProcessUsage,
-    getProcessUsageByDeviceAndDate
+    getProcessUsageByDeviceAndDate,
+    deleteProcessUsageByDeviceId
 };

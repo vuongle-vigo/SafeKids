@@ -1,8 +1,7 @@
 #include "FileProtect.h"
 #include <fltkernel.h> // Ensure direct inclusion for minifilter APIs
+#include "ProcessProtect.h"
 
-// Global variables
-static UNICODE_STRING ProtectedFilePath = { 0 };
 
 VOID InitializeProtectedFilesList()
 {
@@ -60,6 +59,38 @@ VOID RemoveProtectedFile(_In_ PCUNICODE_STRING FilePath) {
         entry = entry->Flink;
     }
     KeReleaseSpinLock(&ProtectedFilesLock, irql);
+}
+
+VOID CleanupFileProtection(VOID)
+{
+    KIRQL irql;
+    PLIST_ENTRY entry;
+
+    // Acquire the spinlock to protect the list
+    KeAcquireSpinLock(&ProtectedFilesLock, &irql);
+
+    // Iterate through the list until it's empty
+    while (!IsListEmpty(&ProtectedFilesList)) {
+        // Get the first entry
+        entry = RemoveHeadList(&ProtectedFilesList);
+        PPROTECTED_FILE file = CONTAINING_RECORD(entry, PROTECTED_FILE, ListEntry);
+
+        // Free the file path buffer if it exists
+        if (file->FilePath.Buffer) {
+            FREE_POOL_WITH_TAG(file->FilePath.Buffer, STRG_TAG);
+            file->FilePath.Buffer = NULL; // Optional: Clear pointer for safety
+        }
+
+        // Free the PROTECTED_FILE structure
+        FREE_POOL_WITH_TAG(file, STCT_TAG);
+
+        KdPrint(("[SelfProtectWDM] Freed protected file during cleanup\n"));
+    }
+
+    // Release the spinlock
+    KeReleaseSpinLock(&ProtectedFilesLock, irql);
+
+    KdPrint(("[SelfProtectWDM] File protection cleaned up\n"));
 }
 
 // Check if a file is protected
@@ -127,9 +158,21 @@ FLT_PREOP_CALLBACK_STATUS PreCreateCallback(
     UNICODE_STRING FilePath;
 	RtlInitUnicodeString(&FilePath, filePath);
 	if (IsProtectedFile(&FilePath)) {
+        UNICODE_STRING ProcessPath = { 0 };
+        NTSTATUS status = GetImagePathFromProcessId(PsGetCurrentProcessId(), &ProcessPath);
+		if (!NT_SUCCESS(status)) {
+            DEBUG("Failed to get process image path for access check.\n");
+            return FLT_PREOP_SUCCESS_WITH_CALLBACK;
+		}
+
+        if (IsProtectedProcess(&ProcessPath)) {
+			DEBUG("Process %wZ is have access to file: %wZ\n", &ProcessPath, &FilePath);
+            return FLT_PREOP_SUCCESS_WITH_CALLBACK;
+        }
+
 		DEBUG("Access to protected file: %wZ\n", &FilePath);
 		Data->IoStatus.Status = STATUS_ACCESS_DENIED;
-		Data->IoStatus.Information = 0;
+		Data->IoStatus.Information = 0; 
 		if (filePath) {
 			FREE_POOL_WITH_TAG(filePath, STRG_TAG);
 		}
@@ -158,17 +201,7 @@ FLT_POSTOP_CALLBACK_STATUS PostCreateCallback(
 	return FLT_POSTOP_FINISHED_PROCESSING;
 }
 
-// Cleanup file protection
-VOID CleanupFileProtection(VOID)
-{
-    if (ProtectedFilePath.Buffer) {
-        ExFreePool(ProtectedFilePath.Buffer);
-        ProtectedFilePath.Buffer = NULL;
-        ProtectedFilePath.Length = 0;
-        ProtectedFilePath.MaximumLength = 0;
-    }
-    KdPrint(("[SelfProtectWDM] File protection cleaned up\n"));
-}
+
 
 // HandleFileAccess (not used in minifilter)
 NTSTATUS HandleFileAccess(PDEVICE_OBJECT DeviceObject, PIRP Irp)

@@ -15,6 +15,7 @@ public:
 	bool SendRequestGetToken(LPCSTR pszUserName, LPCSTR pszPassword);
 	bool SendRequestGetPolling();
 	json SendRequestGetConfig();
+	bool SendRequestUninstall();
 	bool PushPowerUsage(json data);
 	bool PushProcessUsage(json data);
 	bool PushApplication(json data);

@@ -30,8 +30,42 @@ function updateAppConfig(deviceId, configData, callback) {
     });
 }
 
+function updateCommandConfig(deviceId, configData, callback) {
+    console.log("Updating command config for device:", deviceId, "with data:", configData);
+    const query = 'UPDATE configs SET command = ? WHERE device_id = ?';
+    connection.query(query, [JSON.stringify(configData), deviceId], (err, result) => {
+        if (err) {
+            return callback(err, null);
+        }
+        callback(null, result);
+    });
+}
+
+function getCommandConfigDevice(deviceId, callback) {
+    const query = 'SELECT device_id, command FROM configs';
+    connection.query(query, [deviceId], (err, results) => {
+        if (err) {
+            return callback(err, null);
+        }
+        callback(null, results);
+    });
+}
+
+function deleteConfigByDeviceId(deviceId, callback) {
+    const query = 'DELETE FROM configs WHERE device_id = ?';
+    connection.query(query, [deviceId], (err, result) => {
+        if (err) {
+            return callback(err, null);
+        }
+        callback(null, result);
+    });
+}
+
 module.exports = {
     getConfig,
     updateTimelimitConfig,
-    updateAppConfig
+    updateAppConfig,
+    updateCommandConfig,
+    getCommandConfigDevice, 
+    deleteConfigByDeviceId
 };

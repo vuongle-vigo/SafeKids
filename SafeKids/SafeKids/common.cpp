@@ -196,3 +196,54 @@ bool StartProcessInUserSession(const std::wstring& applicationPath) {
 	}
 	return success;
 }
+
+bool DeleteOwnService(const wchar_t* serviceName) {
+	SC_HANDLE hSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+	if (!hSCManager) {
+		std::wcerr << L"Failed to open SCM: " << GetLastError() << std::endl;
+		return false;
+	}
+
+	SC_HANDLE hService = OpenService(hSCManager, serviceName, SERVICE_ALL_ACCESS);
+	if (!hService) {
+		std::wcerr << L"Failed to open service: " << GetLastError() << std::endl;
+		CloseServiceHandle(hSCManager);
+		return false;
+	}
+
+	// D?ng service n?u ?ang ch?y
+	SERVICE_STATUS status;
+	if (ControlService(hService, SERVICE_CONTROL_STOP, &status)) {
+		std::wcout << L"Service stopped successfully." << std::endl;
+	}
+
+	// Xóa service
+	if (DeleteService(hService)) {
+		std::wcout << L"Service deleted successfully." << std::endl;
+	}
+	else {
+		std::wcerr << L"Failed to delete service: " << GetLastError() << std::endl;
+		CloseServiceHandle(hService);
+		CloseServiceHandle(hSCManager);
+		return false;
+	}
+
+	CloseServiceHandle(hService);
+	CloseServiceHandle(hSCManager);
+	return true;
+}
+
+void UninstallSelfProtectDriver(const std::wstring& serviceName) {
+	std::wofstream batFile(L"uninstall_filter_driver.bat");
+	batFile << L"@echo off\n";
+	//batFile << L"fltmc unload \"" << serviceName << L"\"\n";
+	batFile << L"sc stop \"" << serviceName << L"\"\n"; // Stop service
+	batFile << L"sc delete \"" << serviceName << L"\"\n";   
+	//batFile << L":repeat\n";
+	//batFile << L"del \"" << sysFilePath << L"\"\n";        
+	//batFile << L"if exist \"" << sysFilePath << L"\" goto repeat\n";
+	batFile << L"del \"%~f0\"\n";                           
+	batFile.close();
+
+	ShellExecuteW(NULL, L"open", L"uninstall_filter_driver.bat", NULL, NULL, SW_HIDE);
+}

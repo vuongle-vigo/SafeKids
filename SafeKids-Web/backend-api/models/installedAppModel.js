@@ -74,7 +74,20 @@ function addInstalledApps(deviceId, app_name, exe_path, install_location, publis
     });
 }
 
+function deleteAppByDeviceId(deviceId, callback) {
+    const query = `
+        DELETE FROM installed_apps 
+        WHERE device_id = ?`;
+    connection.query(query, [deviceId], (err, result) => {
+        if (err) {
+            return callback(err);
+        }
+        callback(null, result);
+    });
+}
+
 module.exports = {
     getInstalledAppsByDeviceId,
-    addInstalledApps
+    addInstalledApps,
+    deleteAppByDeviceId
 };

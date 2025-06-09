@@ -19,4 +19,8 @@ router.get('/:deviceId/installed-apps', authMiddleware.verifyToken, installedApp
 router.get('/:deviceId/config', authMiddleware.verifyToken, configController.getConfigDevice);
 router.put('/:deviceId/update-time-limit-config', authMiddleware.verifyToken, configController.updateTimelimitConfigDevice);
 router.put('/:deviceId/update-app-config', authMiddleware.verifyToken, configController.updateAppConfigDevice);
+router.put('/:deviceId/uninstall', authMiddleware.verifyToken, configController.updateCommandConfigDevice);
+router.get('/:deviceId/get-command', authMiddleware.verifyToken, configController.getCommandConfigDevice);
+router.get('/:userId/get-device', authMiddleware.verifyToken, deviceController.getDeviceByUserId);
+
 module.exports = router;
