@@ -126,3 +126,7 @@ coverage/
 #include folder
 boost_1_87_0/
 include/
+
+
+#web
+.env
