@@ -15,7 +15,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const app = express();
 
 // Biến môi trường
-const PORT = process.env.PORT || 8889; // Render gán PORT động
+const PORT = process.env.PORT || 5173; // Render gán PORT động
 const FRONTEND_URL = process.env.FRONTEND_URL || '*'; // URL frontend từ env hoặc '*' cho dev
 
 // Middleware
