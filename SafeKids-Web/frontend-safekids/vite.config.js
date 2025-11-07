@@ -14,7 +14,7 @@ export default defineConfig({
     // port: process.env.VITE_PORT || 5173,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://10.15.4.23:8889',
+        target: process.env.VITE_API_URL || 'http://14.225.220.123:8889',
         changeOrigin: true,
         secure: false,
         // rewrite: (path) => path.replace(/^\/api/, ''),
